@@ -1,4 +1,3 @@
-```markdown
 # Spring Boot Java 17 API
 
 [![Java Version](https://img.shields.io/badge/Java-17-orange)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
@@ -22,7 +21,7 @@ A modern, lightweight RESTful API boilerplate built with **Spring Boot 3** and *
    git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
    cd your-repo-name
 
-```
+
 
 2. **Build the project:**
 ```bash
