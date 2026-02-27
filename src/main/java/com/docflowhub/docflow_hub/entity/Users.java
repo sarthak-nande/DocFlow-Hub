@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
-public class Users {
+public class Users extends BaseEntity{
 
 	@Id
 	private String id;
