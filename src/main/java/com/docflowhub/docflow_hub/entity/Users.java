@@ -84,5 +84,15 @@ public class Users extends BaseEntity{
 	public void setExtraDetials(Map<String, Object> extraDetials) {
 		this.extraDetials = extraDetials;
 	}
+
+	public String getOrganizationId() {
+		return organizationId;
+	}
+
+	public void setOrganizationId(String organizationId) {
+		this.organizationId = organizationId;
+	}
+	
+	
 	
 }
