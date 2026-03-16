@@ -21,6 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 public class SecutrityConfig {
@@ -41,7 +43,12 @@ public class SecutrityConfig {
 				.authorizeHttpRequests(request -> {
 			publicPath.forEach(path -> request.requestMatchers(path).permitAll());
 			privatePath.forEach(path -> request.requestMatchers(path).authenticated());
+			request.anyRequest().authenticated();
+			
 		})
+				.exceptionHandling(ex -> ex.authenticationEntryPoint((req, res, e) -> {
+	                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+	            }))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.formLogin(flc -> flc.disable())
 				.httpBasic(hbc -> hbc.disable())

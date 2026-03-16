@@ -20,7 +20,7 @@ public class JwtAuthLoginUtil {
 	@Value("${JWT_SECREATE}")
 	private String secret;
 
-	private final long exiprationTime = 36000;
+	private final long exiprationTime = 3600000;
 	
 	private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));

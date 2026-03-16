@@ -35,4 +35,12 @@ public class GlobalExceptionHandler {
 		
 		return ResponseEntity.badRequest().body(errors);
 	}
+	
+	@ExceptionHandler(UserAlreadyExistsException.class)
+	public ResponseEntity<ErrorResponseDto> userAlreadyExistException(WebRequest webRequest, UserAlreadyExistsException exception){
+		ErrorResponseDto errorResponseDto = new ErrorResponseDto(webRequest.getDescription(false), HttpStatus.CONFLICT, exception.getMessage(), LocalDateTime.now());
+		return new ResponseEntity<>(errorResponseDto,HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+
 }
