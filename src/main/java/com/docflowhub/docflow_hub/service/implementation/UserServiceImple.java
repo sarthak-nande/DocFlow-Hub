@@ -3,6 +3,7 @@ package com.docflowhub.docflow_hub.service.implementation;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +48,15 @@ public class UserServiceImple implements UserService {
 
 	@Override
 	public Users updateUserDetials(UserDto userDto) {
-		return null;
+		Optional<Users> user = userRepository.findByEmail(userDto.email());
+		
+		Users parsedUser = user.get();
+		
+		parsedUser.setName(userDto.name());
+		parsedUser.setRole(userDto.name());
+		parsedUser.setActive(userDto.active());
+		
+		return userRepository.save(parsedUser);
 	}
 
 }
