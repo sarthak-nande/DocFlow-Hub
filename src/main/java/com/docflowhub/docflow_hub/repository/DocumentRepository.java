@@ -4,8 +4,8 @@ package com.docflowhub.docflow_hub.repository;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import com.docflowhub.docflow_hub.entity.UserDocument;
+import com.docflowhub.docflow_hub.entity.Documents;
 
 @Repository
-public interface DocumentRepository extends MongoRepository<UserDocument, String> {
+public interface DocumentRepository extends MongoRepository<Documents, String> {
 }
