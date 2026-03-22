@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.docflowhub.docflow_hub.entity.Role;
+
 public record UserDto(
     @NotBlank(message = "Name is required")
     String name,
@@ -17,7 +19,7 @@ public record UserDto(
     String password,
 
     @NotBlank(message = "Role is required")
-    String role,
+    Role role,
 
     @NotBlank(message = "Organization ID is required")
     String organizationId,
