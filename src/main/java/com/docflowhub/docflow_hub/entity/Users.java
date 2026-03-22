@@ -19,7 +19,7 @@ public class Users extends BaseEntity{
 	
 	private String password;
 	
-	private String role;
+	private Role role;
 	
 	private String organizationId;
 	
@@ -31,7 +31,7 @@ public class Users extends BaseEntity{
 		
 	}
 
-	public Users(String name, String email, String password, String role, String organizationId, boolean active,
+	public Users(String name, String email, String password, Role role, String organizationId, boolean active,
 			Map<String, Object> extraDetials) {
 		super();
 		this.name = name;
@@ -79,10 +79,10 @@ public class Users extends BaseEntity{
 	}
 
 	public String getRole() {
-		return role;
+		return role.name();
 	}
 
-	public void setRole(String role) {
+	public void setRole(Role role) {
 		this.role = role;
 	}
 

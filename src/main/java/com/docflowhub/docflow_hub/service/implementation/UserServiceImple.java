@@ -53,7 +53,7 @@ public class UserServiceImple implements UserService {
 		Users parsedUser = user.get();
 		
 		parsedUser.setName(userDto.name());
-		parsedUser.setRole(userDto.name());
+		parsedUser.setRole(userDto.role());
 		parsedUser.setActive(userDto.active());
 		
 		return userRepository.save(parsedUser);
