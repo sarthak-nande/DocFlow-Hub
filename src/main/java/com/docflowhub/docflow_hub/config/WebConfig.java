@@ -1,18 +1,15 @@
 package com.docflowhub.docflow_hub.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import com.docflowhub.docflow_hub.versioning.VersionedRequestMappingHandlerMapping;
 
 @Configuration
-public class WebConfig implements WebMvcConfigurer{
+public class WebConfig extends WebMvcConfigurationSupport {
 
-	@Override
-	public void configurePathMatch(PathMatchConfigurer configurer) {
-		// TODO Auto-generated method stub
-		configurer.addPathPrefix("/api", controllerType->true);
-	}
-	
-	
+    @Override
+    public RequestMappingHandlerMapping createRequestMappingHandlerMapping() {
+        return new VersionedRequestMappingHandlerMapping();
+    }
 }
