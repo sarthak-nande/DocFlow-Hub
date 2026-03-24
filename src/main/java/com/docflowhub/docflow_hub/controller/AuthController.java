@@ -16,11 +16,12 @@ import com.docflowhub.docflow_hub.dto.RequestAuthDto;
 import com.docflowhub.docflow_hub.dto.ResponseAuthDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Users;
-import com.docflowhub.docflow_hub.service.CustomeUserDetailsService;
 import com.docflowhub.docflow_hub.service.UserService;
 import com.docflowhub.docflow_hub.utils.JwtAuthLoginUtil;
+import com.docflowhub.docflow_hub.versioning.ApiVersion;
 
 @RestController
+@ApiVersion(1)
 @RequestMapping("/auth")
 public class AuthController {
 
