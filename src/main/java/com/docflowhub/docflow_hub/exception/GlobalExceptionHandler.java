@@ -39,7 +39,13 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(UserAlreadyExistsException.class)
 	public ResponseEntity<ErrorResponseDto> userAlreadyExistException(WebRequest webRequest, UserAlreadyExistsException exception){
 		ErrorResponseDto errorResponseDto = new ErrorResponseDto(webRequest.getDescription(false), HttpStatus.CONFLICT, exception.getMessage(), LocalDateTime.now());
-		return new ResponseEntity<>(errorResponseDto,HttpStatus.INTERNAL_SERVER_ERROR);
+		return new ResponseEntity<>(errorResponseDto,HttpStatus.CONFLICT);
+	}
+	
+	@ExceptionHandler(UnAuthorizedAccessException.class)
+	public ResponseEntity<ErrorResponseDto> unAuthorizedAccessException(WebRequest webRequest, UnAuthorizedAccessException exception){
+		ErrorResponseDto errorResponseDto = new ErrorResponseDto(webRequest.getDescription(false), HttpStatus.UNAUTHORIZED, exception.getMessage(), LocalDateTime.now());
+		return new ResponseEntity<>(errorResponseDto,HttpStatus.UNAUTHORIZED);
 	}
 	
 
