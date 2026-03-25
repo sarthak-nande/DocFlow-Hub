@@ -2,10 +2,12 @@ package com.docflowhub.docflow_hub.service.implementation;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.docflowhub.docflow_hub.dto.UserDto;
+import com.docflowhub.docflow_hub.entity.Role;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.exception.UserAlreadyExistsException;
 import com.docflowhub.docflow_hub.repository.UserRepository;
@@ -17,6 +19,7 @@ public class UserServiceImple implements UserService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 
+	@Autowired
 	public UserServiceImple(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
@@ -33,6 +36,8 @@ public class UserServiceImple implements UserService {
 		String encodedPassword = passwordEncoder.encode(userDto.password());
 		
 		users.setPassword(encodedPassword);
+		Role userRole = Role.valueOf("ROLE_ADMIN");
+		users.setRole(userRole);
 		
 		return userRepository.save(users);
 
