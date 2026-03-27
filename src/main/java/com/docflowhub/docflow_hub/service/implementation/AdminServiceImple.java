@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.docflowhub.docflow_hub.dto.UserDetailsResponseDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.exception.UnAuthorizedAccessException;
@@ -29,7 +30,7 @@ public class AdminServiceImple implements AdminService{
 	}
 
 	@Override
-	public Users RegisterUser(UserDto userDto) {
+	public UserDetailsResponseDto RegisterUser(UserDto userDto) {
 		boolean isUserExist = userRepository.existsByEmail(userDto.email());
 		
 		if(isUserExist) {
@@ -54,7 +55,11 @@ public class AdminServiceImple implements AdminService{
 		
 		user.setPassword(encryptedPassword);
 		
-		return userRepository.save(user);
+		userRepository.save(user);
+		
+		UserDetailsResponseDto userDetailsResponseDto = new UserDetailsResponseDto(user.getName(), user.getEmail(), user.getRole(), user.getOrganizationId(), user.isActive(), user.getExtraDetials());
+		
+		return userDetailsResponseDto;
 	}
 
 

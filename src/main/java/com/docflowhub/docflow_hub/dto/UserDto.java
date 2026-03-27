@@ -19,7 +19,7 @@ public record UserDto(
     String password,
 
     @NotBlank(message = "Role is required")
-    Role role,
+    String role,
 
     @NotBlank(message = "Organization ID is required")
     String organizationId,

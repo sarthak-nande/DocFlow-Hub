@@ -47,7 +47,7 @@ public class Users extends BaseEntity{
 		this.name = userDto.name();
 		this.email = userDto.email();
 		this.password = userDto.password();
-		this.role = userDto.role();
+		this.role = Role.valueOf(userDto.role());
 		this.organizationId = userDto.organizationId();
 		this.active = userDto.active();
 		this.extraDetials = userDto.extraDetails();

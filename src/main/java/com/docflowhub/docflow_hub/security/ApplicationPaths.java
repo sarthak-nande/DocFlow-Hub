@@ -10,7 +10,7 @@ public class ApplicationPaths {
 	
 	@Bean(name="publicPath")
 	public List<String> publicPath() {
-		return List.of("/api/auth/login","/api/auth/sign-up");
+		return List.of("/api/v*/auth/login","/api/v*/auth/sign-up","/api/v*/csrf-token/public");
 	}
 	
 	@Bean(name="privatePath")
