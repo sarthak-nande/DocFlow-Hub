@@ -1,11 +1,13 @@
 package com.docflowhub.docflow_hub.service.implementation;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.docflowhub.docflow_hub.dto.UserDetailsResponseDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Role;
 import com.docflowhub.docflow_hub.entity.Users;
@@ -16,6 +18,7 @@ import com.docflowhub.docflow_hub.service.UserService;
 @Service
 public class UserServiceImple implements UserService {
 
+	
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 
@@ -26,7 +29,7 @@ public class UserServiceImple implements UserService {
 	}
 
 	@Override
-	public Users registerUser(UserDto userDto) {
+	public UserDetailsResponseDto registerUser(UserDto userDto) {
 		
 		if (userRepository.existsByEmail(userDto.email())) {
 			throw new UserAlreadyExistsException("User Already Exist With This Username");
@@ -39,7 +42,11 @@ public class UserServiceImple implements UserService {
 		Role userRole = Role.valueOf("ROLE_ADMIN");
 		users.setRole(userRole); 
 		
-		return userRepository.save(users);
+		userRepository.save(users);
+		
+		UserDetailsResponseDto userDetailsResponseDto = new UserDetailsResponseDto(users.getName(), users.getEmail(), users.getRole(), users.getOrganizationId(), users.isActive(), users.getExtraDetials());
+		
+		return userDetailsResponseDto;
 
 	}
 
@@ -56,7 +63,6 @@ public class UserServiceImple implements UserService {
 		Users parsedUser = user.get();
 		
 		parsedUser.setName(userDto.name());
-		parsedUser.setRole(userDto.role());
 		parsedUser.setActive(userDto.active());
 		
 		return userRepository.save(parsedUser);

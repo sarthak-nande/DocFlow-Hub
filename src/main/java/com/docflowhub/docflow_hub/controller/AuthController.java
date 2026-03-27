@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.docflowhub.docflow_hub.dto.RequestAuthDto;
 import com.docflowhub.docflow_hub.dto.ResponseAuthDto;
+import com.docflowhub.docflow_hub.dto.UserDetailsResponseDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.service.UserService;
@@ -52,7 +53,7 @@ public class AuthController {
 	@PostMapping("/sign-up")
 	public ResponseEntity<?> userRegistration(@RequestBody UserDto userDto) {
 		System.out.println(userDto);
-		Users user = userService.registerUser(userDto);
+		UserDetailsResponseDto user = userService.registerUser(userDto);
 
 		return ResponseEntity.status(201).body(Map.of("message", "User Successfully Register", "user", user));
 	}
