@@ -37,7 +37,7 @@ public class UserServiceImple implements UserService {
 		
 		users.setPassword(encodedPassword);
 		Role userRole = Role.valueOf("ROLE_ADMIN");
-		users.setRole(userRole);
+		users.setRole(userRole); 
 		
 		return userRepository.save(users);
 
