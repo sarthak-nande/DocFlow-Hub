@@ -6,13 +6,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.service.UserService;
+import com.docflowhub.docflow_hub.versioning.ApiVersion;
 
 @RestController
+@ApiVersion(1)
 @RequestMapping("/user")
 public class UserController {
 
@@ -35,5 +38,10 @@ public class UserController {
 		Users user = userService.updateUserDetials(userDto);
 		
 		return ResponseEntity.status(200).body(user);
+	}
+	
+	@GetMapping("/activate/account")
+	public String activateAccount(@RequestParam String token) {
+		return userService.activateUserAccount(token);
 	}
 }

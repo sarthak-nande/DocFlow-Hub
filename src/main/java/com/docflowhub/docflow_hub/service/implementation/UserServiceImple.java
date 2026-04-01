@@ -13,7 +13,9 @@ import com.docflowhub.docflow_hub.entity.Role;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.exception.UserAlreadyExistsException;
 import com.docflowhub.docflow_hub.repository.UserRepository;
+import com.docflowhub.docflow_hub.service.EmailService;
 import com.docflowhub.docflow_hub.service.UserService;
+import com.docflowhub.docflow_hub.utils.AccountActivationEmailUtils;
 
 @Service
 public class UserServiceImple implements UserService {
@@ -21,11 +23,15 @@ public class UserServiceImple implements UserService {
 	
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final AccountActivationEmailUtils accountActivationEmailUtils;
+	private final EmailService emailService;
 
 	@Autowired
-	public UserServiceImple(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public UserServiceImple(UserRepository userRepository, PasswordEncoder passwordEncoder, AccountActivationEmailUtils accountActivationEmailUtils, EmailService emailService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.accountActivationEmailUtils = accountActivationEmailUtils;
+		this.emailService =  emailService;
 	}
 
 	@Override
@@ -40,11 +46,17 @@ public class UserServiceImple implements UserService {
 		
 		users.setPassword(encodedPassword);
 		Role userRole = Role.valueOf("ROLE_ADMIN");
-		users.setRole(userRole); 
-		
+		users.setRole(userRole);
+		users.setActive(false);		
 		userRepository.save(users);
 		
 		UserDetailsResponseDto userDetailsResponseDto = new UserDetailsResponseDto(users.getName(), users.getEmail(), users.getRole(), users.getOrganizationId(), users.isActive(), users.getExtraDetials());
+		
+		String token = accountActivationEmailUtils.generateActivationToken(users.getEmail());
+		
+		String html = accountActivationEmailUtils.buildActivationEmail(users.getEmail(), token);
+		
+		emailService.sendHtmlEmail(users.getEmail(), "Activate Your Account", html);
 		
 		return userDetailsResponseDto;
 
@@ -66,6 +78,11 @@ public class UserServiceImple implements UserService {
 		parsedUser.setActive(userDto.active());
 		
 		return userRepository.save(parsedUser);
+	}
+
+	@Override
+	public String activateUserAccount(String token) {
+		return accountActivationEmailUtils.VerifyActivationToken(token);
 	}
 
 }
