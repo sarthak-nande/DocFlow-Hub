@@ -13,4 +13,6 @@ public interface UserService {
 	
 	public Users updateUserDetials(UserDto userDto);
 	
+	public String activateUserAccount(String token);
+	
 }
