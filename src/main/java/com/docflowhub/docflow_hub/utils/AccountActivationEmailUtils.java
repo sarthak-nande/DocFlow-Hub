@@ -45,7 +45,7 @@ public class AccountActivationEmailUtils {
 	    context.setVariable("name", name);
 	    context.setVariable("activationLink", link);
 
-	    return templateEngine.process("activation", context);
+	    return templateEngine.process("activationEmail", context);
 	}
 	
 	
