@@ -3,11 +3,13 @@ package com.docflowhub.docflow_hub.utils;
 import java.security.SecureRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import com.docflowhub.docflow_hub.dto.TempCredentialDto;
 
+@Component
 public class TempUsernameAndPassword {
 	
 	@Autowired
@@ -25,11 +27,9 @@ public class TempUsernameAndPassword {
 	        }
 
 	        return password.toString();
-	    }
-
+	    }	
 	
-	
-	public TempCredentialDto generateTempraroyCredential(String username) {
+	public String generateTempraroyCredential(String username) {
 		Context context = new Context();
 		
 		
@@ -41,10 +41,9 @@ public class TempUsernameAndPassword {
 		
 		TempCredentialDto tempCred = new TempCredentialDto(tempPassword,tempUsername);
 		
-		templateEngine.process("tempPasswordAndEmail", context);
-		
-		return tempCred;
-		
+		return templateEngine.process("tempPasswordAndEmail", context);
 	}
+	
+	
 
 }

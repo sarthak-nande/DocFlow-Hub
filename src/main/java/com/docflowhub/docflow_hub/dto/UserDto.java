@@ -15,7 +15,6 @@ public record UserDto(
     @Email(message = "Invalid email format")
     String email,
 
-    @NotBlank(message = "Password is required")
     String password,
 
     @NotBlank(message = "Role is required")

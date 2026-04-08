@@ -22,6 +22,6 @@ public record OrganizationUserDto(
 	    boolean active,
 
 	    Map<String, Object> extraDetails 
-		) {
+) {
 
 }
