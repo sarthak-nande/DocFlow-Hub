@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.docflowhub.docflow_hub.dto.OrganizationUserDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 
 @Document(collection = "users")
@@ -51,6 +52,15 @@ public class Users extends BaseEntity{
 		this.organizationId = userDto.organizationId();
 		this.active = userDto.active();
 		this.extraDetials = userDto.extraDetails();
+	}
+	
+	public Users(OrganizationUserDto organizationUserDto) {
+		this.name = organizationUserDto.name();
+		this.email = organizationUserDto.email();
+		this.role = Role.valueOf(organizationUserDto.role());
+		this.organizationId = organizationUserDto.organizationId();
+		this.active = organizationUserDto.active();
+		this.extraDetials = organizationUserDto.extraDetails();
 	}
 
 	public String getName() {

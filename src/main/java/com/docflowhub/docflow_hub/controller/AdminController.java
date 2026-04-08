@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.docflowhub.docflow_hub.dto.OrganizationUserDto;
 import com.docflowhub.docflow_hub.dto.SuccessResponseDto;
 import com.docflowhub.docflow_hub.dto.UserDetailsResponseDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
@@ -35,8 +36,8 @@ public class AdminController {
 	}
 
 	@GetMapping("/register-user")
-	public ResponseEntity<SuccessResponseDto<String>> RegisterUsers(@RequestBody UserDto userDto,HttpServletRequest request){
-		UserDetailsResponseDto user = adminService.RegisterUser(userDto);
+	public ResponseEntity<SuccessResponseDto<String>> RegisterUsers(@RequestBody OrganizationUserDto organizationUserDto,HttpServletRequest request){
+		UserDetailsResponseDto user = adminService.RegisterUser(organizationUserDto);
 		
 		SuccessResponseDto<String> response = new SuccessResponseDto<>(
 				request.getRequestURI(),
