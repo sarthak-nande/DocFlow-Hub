@@ -3,6 +3,7 @@ package com.docflowhub.docflow_hub.utils;
 import java.security.SecureRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -14,6 +15,9 @@ public class TempUsernameAndPassword {
 	
 	@Autowired
 	private SpringTemplateEngine templateEngine;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	 private static final String CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
 	    private static final SecureRandom random = new SecureRandom();
@@ -39,7 +43,9 @@ public class TempUsernameAndPassword {
 		context.setVariable("username", tempUsername);
 		context.setVariable("temporaryPassword", tempPassword);
 		
-		TempCredentialDto tempCred = new TempCredentialDto(tempPassword,tempUsername);
+		String encrpytTempPassowrd = passwordEncoder.encode(tempPassword);
+		
+		TempCredentialDto tempCred = new TempCredentialDto(encrpytTempPassowrd,tempUsername);
 		
 		return templateEngine.process("tempPasswordAndEmail", context);
 	}
