@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.docflowhub.docflow_hub.dto.CreatePassword;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.service.UserService;
@@ -43,5 +44,10 @@ public class UserController {
 	@GetMapping("/activate/account")
 	public String activateAccount(@RequestParam String token) {
 		return userService.activateUserAccount(token);
+	}
+	
+	@PostMapping("/create/password")
+	public String createNewPassword(@RequestParam CreatePassword createPassword) {
+		
 	}
 }
