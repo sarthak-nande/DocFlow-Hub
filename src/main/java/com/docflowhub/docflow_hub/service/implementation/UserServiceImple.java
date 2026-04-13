@@ -4,9 +4,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.docflowhub.docflow_hub.dto.CreatePassword;
 import com.docflowhub.docflow_hub.dto.UserDetailsResponseDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Role;
@@ -83,6 +85,21 @@ public class UserServiceImple implements UserService {
 	@Override
 	public String activateUserAccount(String token) {
 		return accountActivationEmailUtils.VerifyActivationToken(token);
+	}
+
+	@Override
+	public String setNewPassword(CreatePassword createPassword) {
+		Users user = userRepository.findByEmail(createPassword.username()).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+		
+		String password = createPassword.password();
+		
+		String encryptedPassword = passwordEncoder.encode(password);
+		
+		user.setPassword(encryptedPassword);
+		
+		userRepository.save(user);
+		
+		return "User Password Reset Successfuly";
 	}
 
 }
