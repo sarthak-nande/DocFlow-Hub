@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.docflowhub.docflow_hub.dto.CreatePassword;
+import com.docflowhub.docflow_hub.dto.TempCredentialDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.service.UserService;
@@ -46,8 +47,13 @@ public class UserController {
 		return userService.activateUserAccount(token);
 	}
 	
+	@GetMapping("/create/password")
+	public boolean checkValidTempUser(@RequestParam TempCredentialDto tempCredentialDto) {
+		return userService.validTempUser(tempCredentialDto);
+	}
+	
 	@PostMapping("/create/password")
-	public String createNewPassword(@RequestParam CreatePassword createPassword) {
-		
+	public String createNewPassword(@RequestBody CreatePassword createPassword) {
+		return userService.setNewPassword(createPassword);
 	}
 }

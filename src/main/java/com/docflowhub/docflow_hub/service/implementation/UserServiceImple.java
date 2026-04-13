@@ -9,11 +9,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.docflowhub.docflow_hub.dto.CreatePassword;
+import com.docflowhub.docflow_hub.dto.TempCredentialDto;
 import com.docflowhub.docflow_hub.dto.UserDetailsResponseDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Role;
+import com.docflowhub.docflow_hub.entity.TempCred;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.exception.UserAlreadyExistsException;
+import com.docflowhub.docflow_hub.repository.TempCredRepository;
 import com.docflowhub.docflow_hub.repository.UserRepository;
 import com.docflowhub.docflow_hub.service.EmailService;
 import com.docflowhub.docflow_hub.service.UserService;
@@ -27,13 +30,15 @@ public class UserServiceImple implements UserService {
 	private final PasswordEncoder passwordEncoder;
 	private final AccountActivationEmailUtils accountActivationEmailUtils;
 	private final EmailService emailService;
+	private final TempCredRepository tempCredRepository;
 
 	@Autowired
-	public UserServiceImple(UserRepository userRepository, PasswordEncoder passwordEncoder, AccountActivationEmailUtils accountActivationEmailUtils, EmailService emailService) {
+	public UserServiceImple(UserRepository userRepository, PasswordEncoder passwordEncoder, AccountActivationEmailUtils accountActivationEmailUtils, EmailService emailService, TempCredRepository tempCredRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.accountActivationEmailUtils = accountActivationEmailUtils;
 		this.emailService =  emailService;
+		this.tempCredRepository = tempCredRepository;
 	}
 
 	@Override
@@ -100,6 +105,15 @@ public class UserServiceImple implements UserService {
 		userRepository.save(user);
 		
 		return "User Password Reset Successfuly";
+	}
+
+	@Override
+	public boolean validTempUser(TempCredentialDto tempCredentialDto) {
+		TempCred tempCred = tempCredRepository.findByEmail(tempCredentialDto.Username()).orElseThrow(() -> new UsernameNotFoundException("Invalid Tempraroy Credentails"));
+		if(passwordEncoder.matches(tempCredentialDto.Password(),tempCred.getPassword())) {
+			return true;
+		}
+		return false;
 	}
 
 }
