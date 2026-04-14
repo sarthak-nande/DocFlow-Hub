@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +24,6 @@ import com.docflowhub.docflow_hub.versioning.ApiVersion;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@PreAuthorize("hasRole('ADMIN')")
 @ApiVersion(1)
 @RequestMapping("/admin")
 public class AdminController {
@@ -35,7 +35,7 @@ public class AdminController {
 		this.adminService = adminService;
 	}
 
-	@GetMapping("/register-user")
+	@PostMapping("/register-user")
 	public ResponseEntity<SuccessResponseDto<String>> RegisterUsers(@RequestBody OrganizationUserDto organizationUserDto,HttpServletRequest request){
 		UserDetailsResponseDto user = adminService.RegisterUser(organizationUserDto);
 		
@@ -49,4 +49,6 @@ public class AdminController {
 		
 		return ResponseEntity.ok(response);
 	}
+	
+	
 }

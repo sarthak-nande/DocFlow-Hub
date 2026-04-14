@@ -15,7 +15,7 @@ public class ApplicationPaths {
 	
 	@Bean(name="privatePath")
 	public List<String> privatePath() {
-		return List.of("/api/documents/status");
+		return List.of("/api/v*/documents/status","/api/v*/admin/register-user");
 	}
 
 }

@@ -40,14 +40,17 @@ public class TempUsernameAndPassword {
 		String tempPassword = generateTempPassword(8);
 		String tempUsername = username;
 		
+		String resetLink = "http://localhost:5173/reset/username="+tempUsername+"&password="+tempPassword;
+		
 		context.setVariable("username", tempUsername);
 		context.setVariable("temporaryPassword", tempPassword);
+		context.setVariable("resetLink", resetLink);
 		
 		String encrpytTempPassowrd = passwordEncoder.encode(tempPassword);
 		
 		TempCredentialDto tempCred = new TempCredentialDto(encrpytTempPassowrd,tempUsername);
 		
-		return templateEngine.process("tempPasswordAndEmail", context);
+		return templateEngine.process("temPasswordAndEmail", context);
 	}
 	
 	

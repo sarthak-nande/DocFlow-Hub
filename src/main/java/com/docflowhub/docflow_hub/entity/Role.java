@@ -1,7 +1,7 @@
 package com.docflowhub.docflow_hub.entity;
 
 public enum Role {
-	ROLE_ADMIN,
+	ADMIN,
 	ROLE_APPROVER,
-	ROLE_USER
+	USER
 }

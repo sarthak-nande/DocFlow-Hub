@@ -42,8 +42,12 @@ public class AuthController {
 	public ResponseEntity<ResponseAuthDto> userLoginAuthentication(@RequestBody RequestAuthDto requestLoginDetails) {
 		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
 				requestLoginDetails.username(), requestLoginDetails.password()));
+		
+		System.out.println(authentication.getName());
 
 		String token = jwtAuthLoginUtil.generateJwtToken(authentication.getName());
+		
+		System.out.println(token);
 
 		ResponseAuthDto responseAuthDto = new ResponseAuthDto(token, authentication.getName());
 
