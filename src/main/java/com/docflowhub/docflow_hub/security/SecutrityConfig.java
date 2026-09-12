@@ -1,5 +1,6 @@
 package com.docflowhub.docflow_hub.security;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -83,4 +84,9 @@ public class SecutrityConfig {
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
+	
+	@Bean
+    public SecureRandom secureRandom() {
+        return new SecureRandom();
+    }
 }

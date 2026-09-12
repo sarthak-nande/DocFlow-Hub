@@ -19,6 +19,9 @@ public record UserDto(
 
     @NotBlank(message = "Role is required")
     String role,
+    
+    @NotBlank(message="Organization Name is required")
+    String organizationName,
 
     @NotBlank(message = "Organization ID is required")
     String organizationId,
