@@ -1,19 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 <body style="font-family: Arial;">
 
-<h2>Activate Your Account 🚀</h2>
+  <h2>Activate Your Account 🚀</h2>
 
-<p>Hello <b>${name}</b>,</p>
+  <!-- 1. Use th:text to populate the name -->
+  <p>Hello <b th:text="${name}">User</b>,</p>
 
-<p>Click below to activate your account:</p>
+  <p>Click below to activate your account:</p>
 
-<a href="${activationLink}" 
-   style="padding:10px 20px; background:#28a745; color:white; text-decoration:none;">
-   Activate Account
-</a>
+  <!-- 2. Use th:href to dynamically set the link -->
+  <a th:href="${activationLink}" 
+     style="padding:10px 20px; background:#28a745; color:white; text-decoration:none; display:inline-block; border-radius:4px;">
+     Activate Account
+  </a>
 
-<p>This link will expire in 30 minutes.</p>
+  <p>This link will expire in 30 minutes.</p>
 
 </body>
 </html>

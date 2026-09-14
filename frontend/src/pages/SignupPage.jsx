@@ -1,32 +1,113 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { signupUser, clearAuthError, clearSignupSuccess } from '../features/auth/authSlice';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { NativeSelect } from '../components/ui/select';
-import { Eye, EyeOff, Zap, User, Mail, Lock, Building, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { signupUser, clearAuthError, clearSignupSuccess } from "../features/auth/authSlice";
+import {
+  ArrowRight,
+  Building2,
+  Check,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  FileText,
+  LockKeyhole,
+  Mail,
+  UserRound,
+  AlertCircle
+} from "lucide-react";
 
-const ROLES = ['USER', 'ROLE_APPROVER', 'ADMIN'];
+const initialForm = {
+  name: "",
+  email: "",
+  password: "",
+  organizationName: "",
+  active: true,
+  extraDetails: {},
+};
+
+function BrandPanel() {
+  return (
+    <section className="relative hidden w-[48%] overflow-hidden bg-primary p-10 text-primary-foreground lg:flex lg:flex-col lg:justify-between xl:p-14">
+      <div className="relative z-10 flex items-center gap-3">
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-foreground text-primary shadow-lg">
+          <FileText className="size-5" />
+        </span>
+        <span className="text-xl font-bold tracking-tight">folio</span>
+      </div>
+      <div className="relative z-10 max-w-lg">
+        <p className="mb-5 flex items-center gap-2 text-sm font-semibold text-primary-foreground/75">
+          <span className="size-2 rounded-full bg-secondary" />A calmer way to
+          work together
+        </p>
+        <h1 className="text-balance text-5xl font-semibold leading-[1.05] tracking-[-0.04em] xl:text-6xl">
+          Bring your organization&apos;s work into focus.
+        </h1>
+        <p className="mt-6 max-w-md text-base leading-7 text-primary-foreground/75">
+          Create a shared home for your documents, teammates, and the work that
+          moves everything forward.
+        </p>
+        <div className="mt-9 flex flex-col gap-4 text-sm font-medium">
+          <div className="flex items-center gap-3">
+            <span className="flex size-7 items-center justify-center rounded-full bg-primary-foreground/15">
+              <Check className="size-4" />
+            </span>
+            One workspace for every document
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="flex size-7 items-center justify-center rounded-full bg-primary-foreground/15">
+              <Check className="size-4" />
+            </span>
+            Invite and share with confidence
+          </div>
+        </div>
+      </div>
+      <div className="relative z-10 flex items-center gap-3 text-sm text-primary-foreground/70">
+        <div className="flex -space-x-2">
+          <span className="flex size-8 items-center justify-center rounded-full border-2 border-primary bg-secondary text-xs font-bold text-secondary-foreground">
+            MC
+          </span>
+          <span className="flex size-8 items-center justify-center rounded-full border-2 border-primary bg-accent text-xs font-bold text-accent-foreground">
+            JL
+          </span>
+          <span className="flex size-8 items-center justify-center rounded-full border-2 border-primary bg-primary-foreground text-xs font-bold text-primary">
+            AP
+          </span>
+        </div>
+        <span>Built for collaborative teams</span>
+      </div>
+      <div className="absolute -bottom-24 -right-20 size-80 rounded-full border-[40px] border-primary-foreground/10" />
+    </section>
+  );
+}
+
+function Field({ id, label, icon: Icon, ...props }) {
+  return (
+    <label className="flex flex-col gap-2 text-sm font-semibold" htmlFor={id}>
+      {label}
+      <span className="relative">
+        <Icon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-accent" />
+        <input
+          id={id}
+          name={id}
+          {...props}
+          className="h-12 w-full rounded-xl border border-input bg-background pl-11 pr-4 text-sm font-normal outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-4 focus:ring-accent/10"
+        />
+      </span>
+    </label>
+  );
+}
 
 export default function SignupPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
+  // Pulling state from Redux
   const { loading, error, signupSuccess } = useSelector((state) => state.auth);
 
+  const [form, setForm] = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'USER',
-    organizationId: '',
-    active: true,
-    extraDetails: {},
-  });
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       dispatch(clearAuthError());
@@ -34,212 +115,184 @@ export default function SignupPage() {
     };
   }, [dispatch]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+  const handleChange = (event) => {
+    const { name, value, type, checked } = event.target;
+    setForm((current) => ({
+      ...current,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     dispatch(signupUser(form));
   };
 
+  const handleGoToLogin = () => {
+    dispatch(clearSignupSuccess());
+    navigate("/login");
+  };
+
+  // Success View
   if (signupSuccess) {
     return (
-      <div className="min-h-screen mesh-bg flex items-center justify-center p-4">
-        <div className="w-full max-w-md text-center animate-fade-in">
-          <div className="glass-strong rounded-2xl p-10 shadow-2xl">
-            <div className="w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+      <main className="min-h-screen bg-background p-4 text-foreground sm:p-6 lg:p-8">
+        <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1380px] items-center justify-center rounded-[2rem] border border-border bg-card p-6 shadow-[0_24px_80px_rgba(22,54,92,0.12)]">
+          <div className="w-full max-w-md text-center animate-in fade-in zoom-in duration-500">
+            <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="size-10" />
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Account Created!</h2>
-            <p className="text-muted-foreground mb-2">
-              Your account has been successfully registered.
+            <h2 className="text-3xl font-semibold tracking-tight">
+              Account created
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Your organization workspace is ready. Check your email for an
+              activation link.
             </p>
-            <p className="text-sm text-muted-foreground mb-8">
-              Check your email for an activation link before logging in.
-            </p>
-            <Button
-              onClick={() => navigate('/login')}
-              size="lg"
-              className="w-full"
-              id="goto-login-btn"
+            <button
+              onClick={handleGoToLogin}
+              className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground transition hover:brightness-105"
             >
-              Go to Login
-            </Button>
+              Go to login <ArrowRight className="size-4" />
+            </button>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
+  // Signup Form View
   return (
-    <div className="min-h-screen mesh-bg flex items-center justify-center p-4">
-      {/* Glow blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 rounded-full bg-violet-600/10 blur-3xl" />
-        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 rounded-full bg-indigo-600/10 blur-3xl" />
-      </div>
-
-      <div className="w-full max-w-lg animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl gradient-primary glow-purple mb-4">
-            <Zap className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold gradient-text mb-2">Create account</h1>
-          <p className="text-muted-foreground">Join DocFlow Hub today</p>
-        </div>
-
-        {/* Card */}
-        <div className="glass-strong rounded-2xl p-8 shadow-2xl">
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>
-                {typeof error === 'string' ? error : 'Registration failed. Please check your details.'}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4" id="signup-form">
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="John Doe"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                  className="pl-9"
-                />
-              </div>
+    <main className="min-h-screen bg-background p-4 text-foreground sm:p-6 lg:p-8">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1380px] overflow-hidden rounded-[2rem] border border-border bg-card shadow-[0_24px_80px_rgba(22,54,92,0.12)] sm:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-4rem)]">
+        <BrandPanel />
+        <section className="flex flex-1 items-center justify-center bg-card px-6 py-10 sm:px-12 lg:px-16 xl:px-24">
+          <div className="w-full max-w-[440px]">
+            <div className="mb-7 flex items-center gap-3 lg:hidden">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <FileText className="size-5" />
+              </span>
+              <span className="text-xl font-bold tracking-tight">folio</span>
+            </div>
+            
+            <div className="mb-8">
+              <p className="mb-3 text-sm font-semibold text-accent">
+                Start together
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                Create your workspace
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Set up your account and organization in a few steps.
+              </p>
             </div>
 
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john@company.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                  className="pl-9"
-                />
+            {/* Redux Error Banner */}
+            {error && (
+              <div className="mb-6 flex items-center gap-3 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50">
+                <AlertCircle className="size-5 shrink-0" />
+                <p>{typeof error === 'string' ? error : 'Registration failed. Please check your details.'}</p>
               </div>
-            </div>
+            )}
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="signup-password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="signup-password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Create a strong password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  className="pl-9 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5" id="signup-form">
+              <Field
+                id="name"
+                label="Full name"
+                icon={UserRound}
+                type="text"
+                placeholder="Alex Morgan"
+                value={form.name}
+                onChange={handleChange}
+                required
+              />
+              <Field
+                id="email"
+                label="Work email"
+                icon={Mail}
+                type="email"
+                placeholder="you@company.com"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+              <Field
+                id="organizationName"
+                label="Organization name"
+                icon={Building2}
+                type="text"
+                placeholder="Acme Studio"
+                value={form.organizationName}
+                onChange={handleChange}
+                required
+              />
 
-            {/* Row: Role + OrgId */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <NativeSelect
-                  id="role"
-                  name="role"
-                  value={form.role}
-                  onChange={handleChange}
-                  required
-                >
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>{r.replace('_', ' ')}</option>
-                  ))}
-                </NativeSelect>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="organizationId">Organization ID</Label>
-                <div className="relative">
-                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="organizationId"
-                    name="organizationId"
-                    placeholder="ORG-001"
-                    value={form.organizationId}
+              <label className="flex flex-col gap-2 text-sm font-semibold" htmlFor="password">
+                Password
+                <span className="relative">
+                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-accent" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password"
+                    value={form.password}
                     onChange={handleChange}
                     required
-                    className="pl-9"
+                    className="h-12 w-full rounded-xl border border-input bg-background pl-11 pr-12 text-sm font-normal outline-none transition placeholder:text-muted-foreground/70 focus:border-accent focus:ring-4 focus:ring-accent/10"
                   />
-                </div>
-              </div>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </span>
+              </label>
 
-            {/* Active checkbox */}
-            <div className="flex items-center gap-3 pt-1">
-              <input
-                type="checkbox"
-                id="active"
-                name="active"
-                checked={form.active}
-                onChange={handleChange}
-                className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
-              />
-              <Label htmlFor="active" className="cursor-pointer">
+              <label className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="active"
+                  checked={form.active}
+                  onChange={handleChange}
+                  className="size-4 rounded border-input accent-[var(--accent)]"
+                />
                 Activate account immediately
-              </Label>
-            </div>
+              </label>
 
-            <Button
-              type="submit"
-              size="lg"
-              disabled={loading}
-              className="w-full mt-2"
-              id="signup-submit-btn"
-            >
-              {loading ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                'Create Account'
-              )}
-            </Button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground transition hover:brightness-105 disabled:cursor-wait disabled:opacity-70"
+              >
+                {loading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    Creating workspace...
+                  </>
+                ) : (
+                  <>
+                    Create workspace <ArrowRight className="size-4" />
+                  </>
+                )}
+              </button>
+            </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
-              Sign in
-            </Link>
-          </p>
-        </div>
+            <p className="mt-7 text-center text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="font-semibold text-accent hover:underline"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

@@ -19,7 +19,7 @@ import {
   Info,
 } from 'lucide-react';
 
-const ROLES = ['USER', 'ROLE_APPROVER', 'ADMIN'];
+const ROLES = ['ROLE_USER', 'ROLE_APPROVER', 'ADMIN'];
 
 export default function AdminPage() {
   const dispatch = useDispatch();
@@ -29,7 +29,7 @@ export default function AdminPage() {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    role: 'USER',
+    role: 'ROLE_USER',
     organizationId: '',
     active: true,
     extraDetails: {},
