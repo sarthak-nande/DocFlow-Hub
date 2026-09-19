@@ -44,7 +44,7 @@ COPY --from=frontend-builder /app/frontend/dist /usr/share/nginx/html
 COPY --from=backend-builder /app/target/*.jar /app/app.jar
 
 # Copy Nginx template and startup script
-COPY nginx.conf.template /etc/nginx/conf.d/nginx.conf.template
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY start.sh /app/start.sh
 
 # Sanitize line endings for Linux and grant execution permissions
