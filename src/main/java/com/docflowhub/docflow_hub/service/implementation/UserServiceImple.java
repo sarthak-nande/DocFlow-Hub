@@ -111,7 +111,6 @@ public class UserServiceImple implements UserService {
 		
 		tempCredRepository.delete(tempCred);
 		
-		
 		return "User Password Reset Successfuly";
 	}
 
