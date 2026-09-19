@@ -16,12 +16,9 @@ public record UserDto(
     String email,
 
     String password,
-
-    @NotBlank(message = "Role is required")
-    String role,
-
-    @NotBlank(message = "Organization ID is required")
-    String organizationId,
+    
+    @NotBlank(message="Organization Name is required")
+    String organizationName,
 
     boolean active,
 

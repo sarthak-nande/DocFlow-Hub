@@ -22,6 +22,8 @@ public class Users extends BaseEntity{
 	
 	private Role role;
 	
+	private String organizationName;
+	
 	private String organizationId;
 	
 	private boolean active;
@@ -32,7 +34,7 @@ public class Users extends BaseEntity{
 		
 	}
 
-	public Users(String name, String email, String password, Role role, String organizationId, boolean active,
+	public Users(String name, String email, String password, Role role, String organizationId, String organizationName, boolean active,
 			Map<String, Object> extraDetials) {
 		super();
 		this.name = name;
@@ -42,16 +44,16 @@ public class Users extends BaseEntity{
 		this.organizationId = organizationId;
 		this.active = active;
 		this.extraDetials = extraDetials;
+		this.organizationName = organizationName;
 	}
 
 	public Users(UserDto userDto) {
 		this.name = userDto.name();
 		this.email = userDto.email();
 		this.password = userDto.password();
-		this.role = Role.valueOf(userDto.role());
-		this.organizationId = userDto.organizationId();
 		this.active = userDto.active();
 		this.extraDetials = userDto.extraDetails();
+		this.organizationName = userDto.organizationName();
 	}
 	
 	public Users(OrganizationUserDto organizationUserDto) {
@@ -118,6 +120,14 @@ public class Users extends BaseEntity{
 
 	public void setOrganizationId(String organizationId) {
 		this.organizationId = organizationId;
+	}
+
+	public String getOrganizationName() {
+		return organizationName;
+	}
+
+	public void setOrganizationName(String organizationName) {
+		this.organizationName = organizationName;
 	}
 	
 	

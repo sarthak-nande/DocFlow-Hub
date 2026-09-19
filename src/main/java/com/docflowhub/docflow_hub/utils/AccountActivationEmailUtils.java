@@ -41,10 +41,10 @@ public class AccountActivationEmailUtils {
 	
 	public String buildActivationEmail(String name, String token) {
 	    Context context = new Context();
-	    String link = "http://localhost:8080/api/v1/user/activate/account?token=" + token;
+	    String link = "http://localhost:5000/api/v1/user/activate/account?token=" + token;
 	    context.setVariable("name", name);
 	    context.setVariable("activationLink", link);
-
+	  	
 	    return templateEngine.process("activationEmail", context);
 	}
 	
@@ -59,7 +59,14 @@ public class AccountActivationEmailUtils {
 		
 		Users users = userRepository.findByEmail(activationLink.getEmail()).orElseThrow(() -> new RuntimeException("Invalid Email"));
 		
+		if(users.isActive()) {
+			return "User Account Already Active";
+		}
+		
 		users.setActive(true);
+		
+		userRepository.save(users);
+		
 		
 		return "Your Account Successfuly Activated Please Go To Login Page";
 	}

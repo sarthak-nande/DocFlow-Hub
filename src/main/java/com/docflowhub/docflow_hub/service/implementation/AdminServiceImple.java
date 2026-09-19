@@ -49,9 +49,10 @@ public class AdminServiceImple implements AdminService{
 		
 		Optional<Users> adminDetials = userRepository.findByEmail(adminUsername);
 		
-		String orgnizationName = adminDetials.get().getOrganizationId();
+		String orgnizationId = adminDetials.get().getOrganizationId();
 		
-		if(!orgnizationName.equals(organizationUserDto.organizationId())) {
+		
+		if(!orgnizationId.equals(organizationUserDto.organizationId())) {
 			throw new UnAuthorizedAccessException("User is unauthorized to perfrom this action");
 		}
 		

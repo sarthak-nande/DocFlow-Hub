@@ -21,6 +21,7 @@ import com.docflowhub.docflow_hub.repository.UserRepository;
 import com.docflowhub.docflow_hub.service.EmailService;
 import com.docflowhub.docflow_hub.service.UserService;
 import com.docflowhub.docflow_hub.utils.AccountActivationEmailUtils;
+import com.docflowhub.docflow_hub.utils.GenerateOrganizationId;
 
 @Service
 public class UserServiceImple implements UserService {
@@ -31,14 +32,16 @@ public class UserServiceImple implements UserService {
 	private final AccountActivationEmailUtils accountActivationEmailUtils;
 	private final EmailService emailService;
 	private final TempCredRepository tempCredRepository;
+	private final GenerateOrganizationId generateOrganizationId;
 
 	@Autowired
-	public UserServiceImple(UserRepository userRepository, PasswordEncoder passwordEncoder, AccountActivationEmailUtils accountActivationEmailUtils, EmailService emailService, TempCredRepository tempCredRepository) {
+	public UserServiceImple(UserRepository userRepository, PasswordEncoder passwordEncoder, AccountActivationEmailUtils accountActivationEmailUtils, EmailService emailService, TempCredRepository tempCredRepository, GenerateOrganizationId generateOrganizationId) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.accountActivationEmailUtils = accountActivationEmailUtils;
 		this.emailService =  emailService;
 		this.tempCredRepository = tempCredRepository;
+		this.generateOrganizationId = generateOrganizationId;
 	}
 
 	@Override
@@ -54,7 +57,8 @@ public class UserServiceImple implements UserService {
 		users.setPassword(encodedPassword);
 		Role userRole = Role.valueOf("ROLE_ADMIN");
 		users.setRole(userRole);
-		users.setActive(false);		
+		users.setActive(false);
+		users.setOrganizationId(generateOrganizationId.generate(userDto.organizationName()));
 		userRepository.save(users);
 		
 		UserDetailsResponseDto userDetailsResponseDto = new UserDetailsResponseDto(users.getName(), users.getEmail(), users.getRole(), users.getOrganizationId(), users.isActive(), users.getExtraDetials());
