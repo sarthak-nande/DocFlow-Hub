@@ -56,15 +56,18 @@ public class AuthController {
 				requestLoginDetails.username(), requestLoginDetails.password()));
 		
 		if(userLoginValidations.validateStatus(authentication.getName()) == false) {
+			
 			ErrorResponseDto<String> response = new ErrorResponseDto<>(
 					request.getRequestURI(),
 			        HttpStatus.OK,
-			        "User Account Is Not Verified, Please Check Your Email To Verify",
+			        "User Account Is Not Verified, Please Check Your We Have Just Sent Email To Verify",
 			        LocalDateTime.now()
 			);
 			
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
 		}
+		
+		
 
 		String token = jwtAuthLoginUtil.generateJwtToken(authentication.getName());
 

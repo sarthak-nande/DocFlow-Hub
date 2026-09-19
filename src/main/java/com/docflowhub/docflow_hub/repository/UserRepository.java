@@ -12,7 +12,7 @@ import com.docflowhub.docflow_hub.entity.Users;
 @Repository
 public interface UserRepository extends MongoRepository<Users, String>{
 
-	Optional<Users> findByEmail(String username);
+	Optional<Users> findByEmail(String email);
 	
 	boolean existsByEmail(String username);
 	

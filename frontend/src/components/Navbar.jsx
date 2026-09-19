@@ -1,44 +1,40 @@
+import { Bell, Search, Menu } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { Bell, Search } from 'lucide-react';
-import { Badge } from './ui/badge';
 
-export default function Navbar({ title = 'Dashboard' }) {
-  const { username } = useSelector((state) => state.auth);
-
+export default function Navbar({ title = 'Profile', onMenuToggle }) {
+  const username = useSelector((state) => state.auth?.username);
+  
   return (
-    <header className="h-16 glass border-b border-border flex items-center justify-between px-6 sticky top-0 z-30">
-      {/* Page title */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">DocFlow Hub</p>
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur sm:px-8">
+      <div className="flex items-center gap-3">
+        {/* Hamburger Menu Button - Shows ONLY on mobile devices */}
+        <button 
+          onClick={onMenuToggle} 
+          className="md:hidden flex items-center justify-center rounded-lg p-2 text-slate-700 hover:bg-slate-100 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="w-7 h-7" />
+        </button>
+        
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-950">{title}</h1>
+          <p className="text-xs text-slate-400 hidden sm:block">Folio workspace</p>
+        </div>
       </div>
 
-      {/* Right side */}
-      <div className="flex items-center gap-4">
-        {/* Search hint */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border text-muted-foreground text-xs">
-          <Search className="w-3.5 h-3.5" />
-          <span>Search...</span>
-          <kbd className="ml-1 px-1.5 py-0.5 rounded text-xs bg-background border border-border">⌘K</kbd>
+      <div className="flex items-center gap-3 sm:gap-5">
+        <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-400 lg:flex">
+          <Search className="size-4" /> Search <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">⌘K</kbd>
         </div>
-
-        {/* Notifications */}
-        <button className="relative w-9 h-9 rounded-lg bg-secondary/50 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-          <Bell className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-bold">
-            2
-          </span>
+        <button type="button" aria-label="Notifications" className="relative rounded-xl border border-slate-200 p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-700 sm:p-2.5">
+          <Bell className="size-5 sm:size-[18px]" />
+          <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[9px] font-bold text-white">2</span>
         </button>
-
-        {/* Avatar */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-white font-semibold text-sm">
-            {username ? username[0].toUpperCase() : 'U'}
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm font-medium text-foreground leading-tight">{username || 'User'}</p>
-            <Badge variant="success" className="text-[10px] px-1.5 py-0">Online</Badge>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="flex size-9 items-center justify-center rounded-full bg-blue-700 text-sm font-bold text-white">
+            {(username || 'U').charAt(0).toUpperCase()}
+          </span>
+          <span className="hidden sm:block text-sm font-semibold text-slate-700">{username || 'Member'}</span>
         </div>
       </div>
     </header>
