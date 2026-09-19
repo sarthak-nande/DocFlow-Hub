@@ -67,6 +67,8 @@ public class AccountActivationEmailUtils {
 		
 		userRepository.save(users);
 		
+		accountActivationLinkRepository.delete(activationLink);
+		
 		
 		return "Your Account Successfuly Activated Please Go To Login Page";
 	}

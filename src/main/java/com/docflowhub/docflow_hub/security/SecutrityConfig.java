@@ -65,7 +65,7 @@ public class SecutrityConfig {
 	public CorsFilter corsFilter() {
 		CorsConfiguration config = new CorsConfiguration();
 
-		config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+		config.setAllowedOrigins(Arrays.asList("http://localhost:5173","https://docflow-hub.onrender.com"));
 		config.setAllowedMethods(Collections.singletonList("*"));
 		config.setAllowedHeaders(Arrays.asList("Content-Type"));
 		config.setAllowCredentials(true);

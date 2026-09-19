@@ -9,6 +9,8 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import com.docflowhub.docflow_hub.dto.TempCredentialDto;
+import com.docflowhub.docflow_hub.entity.TempCred;
+import com.docflowhub.docflow_hub.repository.TempCredRepository;
 
 @Component
 public class TempUsernameAndPassword {
@@ -17,9 +19,12 @@ public class TempUsernameAndPassword {
 	private SpringTemplateEngine templateEngine;
 	
 	@Autowired
+	private TempCredRepository tempCredRepository;
+	
+	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
-	 private static final String CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+	 private static final String CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#";
 	    private static final SecureRandom random = new SecureRandom();
 
 	    public static String generateTempPassword(int length) {
@@ -48,7 +53,9 @@ public class TempUsernameAndPassword {
 		
 		String encrpytTempPassowrd = passwordEncoder.encode(tempPassword);
 		
-		TempCredentialDto tempCred = new TempCredentialDto(encrpytTempPassowrd,tempUsername);
+		TempCred tempCred = new TempCred(tempUsername,encrpytTempPassowrd);
+		
+		tempCredRepository.save(tempCred);
 		
 		return templateEngine.process("temPasswordAndEmail", context);
 	}
