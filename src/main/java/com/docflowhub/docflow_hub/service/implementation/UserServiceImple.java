@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -124,5 +127,29 @@ public class UserServiceImple implements UserService {
 		}
 		return false;
 	}
+
+	@Override
+	public Optional<Users> findUserByAdminOrganizationId(String organizationId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		
+		if(authentication != null && authentication.isAuthenticated()) {
+			
+			String role = authentication.getAuthorities().stream()
+					.findFirst()
+					.map(GrantedAuthority::getAuthority)
+					.orElse(null);
+			
+			if(role!=null && role.equals("ROLE_ADMIN")) {
+				Optional<Users> users = userRepository.findUserByOrganizationId(organizationId);
+				
+				return users;
+			}
+			
+		}
+		
+		return Optional.empty();
+	}
+	
+	
 
 }
