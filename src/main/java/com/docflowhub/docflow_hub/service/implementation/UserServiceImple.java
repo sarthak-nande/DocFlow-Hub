@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -74,8 +77,8 @@ public class UserServiceImple implements UserService {
 	}
 
 	@Override
-	public Optional<Users> getUser(String Username) {
-		Optional<Users> user = userRepository.findByEmail(Username);
+	public Optional<Users> getUser(String email) {
+		Optional<Users> user = userRepository.findByEmail(email);
 		return user;
 	}
 
@@ -99,25 +102,54 @@ public class UserServiceImple implements UserService {
 	@Override
 	public String setNewPassword(CreatePassword createPassword) {
 		Users user = userRepository.findByEmail(createPassword.username()).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
-		
+		TempCred tempCred = tempCredRepository.findByEmail(createPassword.username()).orElseThrow(() -> new UsernameNotFoundException("Invalid Tempraroy Credentails"));
 		String password = createPassword.password();
 		
 		String encryptedPassword = passwordEncoder.encode(password);
 		
 		user.setPassword(encryptedPassword);
+		user.setActive(true);
 		
 		userRepository.save(user);
+		
+		tempCredRepository.delete(tempCred);
 		
 		return "User Password Reset Successfuly";
 	}
 
 	@Override
 	public boolean validTempUser(TempCredentialDto tempCredentialDto) {
-		TempCred tempCred = tempCredRepository.findByEmail(tempCredentialDto.Username()).orElseThrow(() -> new UsernameNotFoundException("Invalid Tempraroy Credentails"));
-		if(passwordEncoder.matches(tempCredentialDto.Password(),tempCred.getPassword())) {
+		System.out.println(tempCredentialDto.email());
+		TempCred tempCred = tempCredRepository.findByEmail(tempCredentialDto.email()).orElseThrow(() -> new UsernameNotFoundException("Invalid Tempraroy Credentails"));
+		
+		if(passwordEncoder.matches(tempCredentialDto.password(),tempCred.getPassword())) {
 			return true;
 		}
 		return false;
 	}
+
+	@Override
+	public Optional<Users> findUserByAdminOrganizationId(String organizationId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		
+		if(authentication != null && authentication.isAuthenticated()) {
+			
+			String role = authentication.getAuthorities().stream()
+					.findFirst()
+					.map(GrantedAuthority::getAuthority)
+					.orElse(null);
+			
+			if(role!=null && role.equals("ROLE_ADMIN")) {
+				Optional<Users> users = userRepository.findUserByOrganizationId(organizationId);
+				
+				return users;
+			}
+			
+		}
+		
+		return Optional.empty();
+	}
+	
+	
 
 }

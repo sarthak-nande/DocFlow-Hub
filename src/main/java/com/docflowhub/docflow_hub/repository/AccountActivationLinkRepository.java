@@ -13,4 +13,8 @@ public interface AccountActivationLinkRepository extends MongoRepository<Activat
 	Optional<ActivationLink> findByToken(String token);
 	
 	ActivationLink save(ActivationLink activationLink);
+	
+	boolean existsByEmail(String email);
+	
+	ActivationLink findByEmail(String email);
 }

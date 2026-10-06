@@ -1,0 +1,106 @@
+name: CI/CD Pipeline - Build & Deploy to Render
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # ----------------------------------------------------
+  # 1. CI Job: Validate Frontend & Backend Builds
+  # ----------------------------------------------------
+  test-and-build:
+    name: Build & Test (Frontend + Backend)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Build Backend with Maven
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
+
+  # ----------------------------------------------------
+  # 2. Container Registry Job: Build & Push Docker Image to GHCR
+  # ----------------------------------------------------
+  docker-build-push:
+    name: Build & Push Docker Image to GHCR
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Lowercase Repository Name
+        id: repo
+        run: echo "owner_lc=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.repo.outputs.owner_lc }}/docflow-hub:latest
+            ghcr.io/${{ steps.repo.outputs.owner_lc }}/docflow-hub:${{ github.sha }}
+
+  # ----------------------------------------------------
+  # 3. CD Job: Trigger Render Deploy Hook
+  # ----------------------------------------------------
+  deploy-to-render:
+    name: Trigger Render Deployment
+    needs: [test-and-build, docker-build-push]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render Deploy Hook
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::warning ::RENDER_DEPLOY_HOOK_URL secret is not set in GitHub Repository Secrets. Skipping deploy hook trigger."
+            exit 0
+          fi
+          echo "Triggering Render deployment via Deploy Hook..."
+          curl -s -X POST "$RENDER_DEPLOY_HOOK_URL"
+          echo "Render deployment trigger sent!"

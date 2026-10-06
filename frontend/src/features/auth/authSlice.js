@@ -9,11 +9,17 @@ export const loginUser = createAsyncThunk(
     try {
       await fetchCsrfToken();
       const response = await axiosInstance.post('/auth/login', { username, password });
-      const { Token, username: uname } = response.data;
+      const token = response.data.Token || response.data.token;
+      const uname = response.data.username;
+
+      if (!token || !uname) {
+        throw new Error('Login response did not include authentication details');
+      }
+
       // Persist to localStorage
-      localStorage.setItem('docflow_token', Token);
+      localStorage.setItem('docflow_token', token);
       localStorage.setItem('docflow_user', uname);
-      return { token: Token, username: uname };
+      return { token, username: uname };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || err.response?.data || 'Login failed'
@@ -41,10 +47,10 @@ export const fetchUserDetails = createAsyncThunk(
   'auth/fetchUserDetails',
   async (email, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get('/user/userDetails', {
-        data: email,
-        headers: { 'Content-Type': 'text/plain' },
-      });
+      // ADD THIS LINE: Fetch CSRF token before making the POST request
+      await fetchCsrfToken(); 
+      
+      const response = await axiosInstance.post('/user/userDetails', { email: email });
       return response.data;
     } catch (err) {
       return rejectWithValue(

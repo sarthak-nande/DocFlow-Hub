@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
 import AdminPage from './pages/AdminPage';
 import ProfilePage from './pages/ProfilePage';
+import ResetPasswordPage from './pages/ResetPassword';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/activate" element={<ActivateAccountPage />} />
       <Route path="/create-password" element={<CreatePasswordPage />} />
+      <Route path="/reset/*" element={<ResetPasswordPage />} />
 
       {/* Protected routes */}
       <Route
@@ -44,7 +46,7 @@ export default function App() {
         }
       />
       <Route
-        path="/admin"
+        path="/register-user"
         element={
           <ProtectedRoute>
             <AdminPage />
