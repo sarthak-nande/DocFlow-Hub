@@ -3,8 +3,9 @@ import { useSelector } from 'react-redux';
 
 export default function ProtectedRoute({ children }) {
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const hasStoredToken = Boolean(localStorage.getItem('docflow_token'));
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !hasStoredToken) {
     return <Navigate to="/login" replace />;
   }
 

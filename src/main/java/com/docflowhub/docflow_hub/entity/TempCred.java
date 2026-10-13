@@ -42,7 +42,7 @@ public class TempCred {
 	}
 	
 	public TempCred(TempCredentialDto tempCredentialDto) {
-		this.email = tempCredentialDto.Username();
-		this.password = tempCredentialDto.Password();
+		this.email = tempCredentialDto.email();
+		this.password = tempCredentialDto.password();
 	}
 }

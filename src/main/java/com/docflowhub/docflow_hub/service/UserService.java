@@ -21,4 +21,6 @@ public interface UserService {
 	
 	public boolean validTempUser(TempCredentialDto tempCredentialDto);
 	
+	public Optional<Users> findUserByAdminOrganizationId(String organizationId);
+	
 }

@@ -10,12 +10,12 @@ public class ApplicationPaths {
 	
 	@Bean(name="publicPath")
 	public List<String> publicPath() {
-		return List.of("/api/v*/auth/login","/api/v*/auth/sign-up","/api/v*/csrf-token/public","/api/v*/mail/test","/api/v*/user/activate/account");
+		return List.of("/api/v*/auth/login","/api/v*/auth/sign-up","/api/v*/csrf-token/public","/api/v*/mail/test","/api/v*/user/activate/account","/api/v*/user/create/password");
 	}
 	
 	@Bean(name="privatePath")
 	public List<String> privatePath() {
-		return List.of("/api/v*/documents/status","/api/v*/admin/register-user");
+		return List.of("/api/v*/documents/status","/api/v*/admin/register-user", "/api/v*/user/userDetails");
 	}
 
 }

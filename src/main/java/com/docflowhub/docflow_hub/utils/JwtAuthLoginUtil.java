@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class JwtAuthLoginUtil {
 
-	@Value("${JWT_SECREATE}")
+	@Value("${JWT_SECREATE:${JWT_SECRET:defaultSecretKeyForDocFlowHubSystem2026SecureKey32BytesLong}}")
 	private String secret;
 
 	private final long exiprationTime = 3600000;

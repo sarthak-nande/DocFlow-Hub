@@ -1,0 +1,16 @@
+.git
+.gitignore
+.dockerignore
+Dockerfile
+README.md
+.idea
+.vscode
+.settings
+.classpath
+.project
+.metadata
+target/
+frontend/node_modules/
+frontend/dist/
+uploads/
+*.log
