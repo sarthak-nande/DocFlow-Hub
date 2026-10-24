@@ -1,5 +1,6 @@
 package com.docflowhub.docflow_hub.service.implementation;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -129,25 +130,28 @@ public class UserServiceImple implements UserService {
 	}
 
 	@Override
-	public Optional<Users> findUserByAdminOrganizationId(String organizationId) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		
-		if(authentication != null && authentication.isAuthenticated()) {
-			
-			String role = authentication.getAuthorities().stream()
-					.findFirst()
-					.map(GrantedAuthority::getAuthority)
-					.orElse(null);
-			
-			if(role!=null && role.equals("ROLE_ADMIN")) {
-				Optional<Users> users = userRepository.findUserByOrganizationId(organizationId);
-				
-				return users;
-			}
-			
-		}
-		
-		return Optional.empty();
+	public List<Users> findUserByAdminOrganizationId(String organizationId) {
+	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	    
+	    if (authentication != null && authentication.isAuthenticated()) {
+	        
+	        String role = authentication.getAuthorities().stream()
+	                .findFirst()
+	                .map(GrantedAuthority::getAuthority)
+	                .orElse(null);
+	        
+	        if (role != null && role.equals("ROLE_ADMIN")) {
+	            List<Users> users = userRepository.findUserByOrganizationId(organizationId);
+	            
+	            List<Users> filteredData = users.stream()
+	                    .filter(t -> !t.getEmail().equals(authentication.getName())) 
+	                    .toList();
+	            
+	            return filteredData;
+	        }
+	    }
+	    
+	    return List.of();
 	}
 	
 	

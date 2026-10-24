@@ -1,7 +1,9 @@
 package com.docflowhub.docflow_hub.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.docflowhub.docflow_hub.dto.CreatePassword;
+import com.docflowhub.docflow_hub.dto.ErrorResponseDto;
 import com.docflowhub.docflow_hub.dto.SuccessResponseDto;
 import com.docflowhub.docflow_hub.dto.TempCredentialDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
@@ -23,6 +26,7 @@ import com.docflowhub.docflow_hub.service.UserService;
 import com.docflowhub.docflow_hub.versioning.ApiVersion;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @ApiVersion(1)
@@ -52,6 +56,7 @@ public class UserController {
 		return ResponseEntity.ok().body(response);
 	}
 	
+	
 	@PostMapping("/edit")
 	public ResponseEntity<Users> updateUserDetails(@RequestBody UserDto userDto){
 		Users user = userService.updateUserDetials(userDto);
@@ -73,5 +78,31 @@ public class UserController {
 	@PostMapping("/create/password")
 	public String createNewPassword(@RequestBody CreatePassword createPassword) {
 		return userService.setNewPassword(createPassword);
+	}
+	
+	@GetMapping("/organization")
+	public ResponseEntity<?> getUsersDetails(@RequestParam @NotBlank String orgId, HttpServletRequest request){
+		List<Users> users = userService.findUserByAdminOrganizationId(orgId);
+		
+		if(users.isEmpty()) {
+			ErrorResponseDto<String> errorResponse = new ErrorResponseDto<>(
+					request.getRequestURI(),
+			        HttpStatus.OK,
+			        "Unazuthorized Reuqest!!",
+			        LocalDateTime.now()
+			);
+			
+			return ResponseEntity.status(400).body(errorResponse);
+		}
+		
+		SuccessResponseDto<Users> response = new SuccessResponseDto<>(
+				request.getRequestURI(),
+		        HttpStatus.OK,
+		        "User details retrieved successfully",
+		        users,
+		        LocalDateTime.now()
+		);
+		
+		return ResponseEntity.ok().body(response);
 	}
 }

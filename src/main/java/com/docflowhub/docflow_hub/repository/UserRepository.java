@@ -1,6 +1,7 @@
 
 package com.docflowhub.docflow_hub.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -18,7 +19,7 @@ public interface UserRepository extends MongoRepository<Users, String>{
 	
 	boolean existsByOrganizationId(String organizationId);
 	
-	Optional<Users> findUserByOrganizationId(String organizationId);
+	List<Users> findUserByOrganizationId(String organizationId);
 
 	void save(UserDto userDto);
 }

@@ -6,9 +6,10 @@ import ActivateAccountPage from './pages/ActivateAccountPage';
 import CreatePasswordPage from './pages/CreatePasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
-import AdminPage from './pages/AdminPage';
+import ManageUsers from './pages/ManageUsersPage';
 import ProfilePage from './pages/ProfilePage';
 import ResetPasswordPage from './pages/ResetPassword';
+import AdminPage from './pages/AdminPage';
 
 export default function App() {
   return (
@@ -46,10 +47,18 @@ export default function App() {
         }
       />
       <Route
-        path="/register-user"
+        path="/register-users"
         element={
           <ProtectedRoute>
             <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/manage-users"
+        element={
+          <ProtectedRoute>
+            <ManageUsers />
           </ProtectedRoute>
         }
       />
