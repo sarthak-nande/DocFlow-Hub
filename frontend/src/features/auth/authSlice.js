@@ -43,6 +43,23 @@ export const signupUser = createAsyncThunk(
   }
 );
 
+export const fetchUsersByOrganization = createAsyncThunk(
+  'auth/fetchUsersByOrganization',
+  async (orgId, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      const response = await axiosInstance.get(`/user/organization`, {
+        params: { orgId }
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || 'Failed to fetch organization users'
+      );
+    }
+  }
+);
+
 export const fetchUserDetails = createAsyncThunk(
   'auth/fetchUserDetails',
   async (email, { rejectWithValue }) => {
@@ -85,6 +102,7 @@ const initialState = {
   username: storedUser || null,
   isAuthenticated: !!storedToken,
   user: null,
+  orgUsers: [],
   loading: false,
   error: null,
   signupSuccess: false,
@@ -145,6 +163,25 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
+
+    // Fetch users by organization
+    // Inside your authSlice.js extraReducers builder:
+builder
+  .addCase(fetchUsersByOrganization.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+  })
+  .addCase(fetchUsersByOrganization.fulfilled, (state, action) => {
+    state.loading = false;
+    // Extract from action.payload.object because your API response wraps the array there
+    const payload = action.payload?.object || action.payload?.data || action.payload;
+    state.orgUsers = Array.isArray(payload) ? payload : [];
+  })
+  .addCase(fetchUsersByOrganization.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload;
+    state.orgUsers = [];
+  });
 
     // Fetch user details
     builder

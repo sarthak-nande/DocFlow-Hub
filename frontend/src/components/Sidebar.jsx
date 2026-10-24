@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, FileText, LayoutDashboard, LogOut, Upload, UserRound, Zap, UserPlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, LayoutDashboard, LogOut, Upload, UserRound, Zap, Users } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 
@@ -7,9 +7,8 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/documents', label: 'Documents', icon: FileText },
   { to: '/upload', label: 'Upload', icon: Upload },
-  { to: '/register-user', label: 'Register User', icon: UserPlus },
+  { to: '/manage-users', label: 'Manage Users', icon: Users },
   { to: '/profile', label: 'Profile', icon: UserRound }
-   // New Nav Item
 ];
 
 export default function Sidebar({ collapsed, onToggle, mobileMenuOpen, setMobileMenuOpen }) {
@@ -70,7 +69,7 @@ export default function Sidebar({ collapsed, onToggle, mobileMenuOpen, setMobile
             <NavLink 
               key={to} 
               to={to} 
-              onClick={() => setMobileMenuOpen(false)} // Closes sidebar on mobile when a link is clicked
+              onClick={() => setMobileMenuOpen(false)}
               title={collapsed ? label : undefined} 
               className={({ isActive }) => `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${collapsed ? 'md:justify-center' : ''} ${isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
             >

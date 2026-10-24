@@ -1,5 +1,6 @@
 package com.docflowhub.docflow_hub.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.docflowhub.docflow_hub.dto.CreatePassword;
@@ -21,6 +22,6 @@ public interface UserService {
 	
 	public boolean validTempUser(TempCredentialDto tempCredentialDto);
 	
-	public Optional<Users> findUserByAdminOrganizationId(String organizationId);
+	public List<Users> findUserByAdminOrganizationId(String organizationId);
 	
 }
