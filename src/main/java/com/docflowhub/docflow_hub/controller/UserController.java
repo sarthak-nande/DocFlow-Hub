@@ -20,6 +20,8 @@ import com.docflowhub.docflow_hub.dto.CreatePassword;
 import com.docflowhub.docflow_hub.dto.ErrorResponseDto;
 import com.docflowhub.docflow_hub.dto.SuccessResponseDto;
 import com.docflowhub.docflow_hub.dto.TempCredentialDto;
+import com.docflowhub.docflow_hub.dto.UpdateNameAndRoleDto;
+import com.docflowhub.docflow_hub.dto.UpdateStatusDto;
 import com.docflowhub.docflow_hub.dto.UserDto;
 import com.docflowhub.docflow_hub.entity.Users;
 import com.docflowhub.docflow_hub.service.UserService;
@@ -105,4 +107,58 @@ public class UserController {
 		
 		return ResponseEntity.ok().body(response);
 	}
+	
+	@PostMapping("/edit/status")
+	public ResponseEntity<?> changeUserStatus(@RequestBody UpdateStatusDto updateStatusDto, HttpServletRequest request){
+		Users user = userService.updateUserStatus(updateStatusDto.username(),updateStatusDto.status());
+		
+		if(user == null) {
+			ErrorResponseDto<String> errorResponse = new ErrorResponseDto<>(
+					request.getRequestURI(),
+			        HttpStatus.OK,
+			        "Unazuthorized Reuqest!!",
+			        LocalDateTime.now()
+			);
+			
+			return ResponseEntity.status(400).body(errorResponse);
+		}
+		
+		SuccessResponseDto<Users> response = new SuccessResponseDto<>(
+				request.getRequestURI(),
+		        HttpStatus.OK,
+		        "User details retrieved successfully",
+		        user,
+		        LocalDateTime.now()
+		);
+		
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@PostMapping("/edit/name/role")
+	public ResponseEntity<?> updateUserNameAndRole(@RequestBody UpdateNameAndRoleDto updateNameAndRoleDto, HttpServletRequest request){
+		
+		Users user = userService.updateFullNameAndUserRole(updateNameAndRoleDto.username(), updateNameAndRoleDto.name(), updateNameAndRoleDto.role());
+		
+		if(user == null) {
+			ErrorResponseDto<String> errorResponse = new ErrorResponseDto<>(
+					request.getRequestURI(),
+			        HttpStatus.OK,
+			        "Unazuthorized Reuqest!!",
+			        LocalDateTime.now()
+			);
+			
+			return ResponseEntity.status(400).body(errorResponse);
+		}
+		
+		SuccessResponseDto<Users> response = new SuccessResponseDto<>(
+				request.getRequestURI(),
+		        HttpStatus.OK,
+		        "User details retrieved successfully",
+		        user,
+		        LocalDateTime.now()
+		);
+		
+		return ResponseEntity.ok().body(response);
+	}
+
 }

@@ -24,4 +24,8 @@ public interface UserService {
 	
 	public List<Users> findUserByAdminOrganizationId(String organizationId);
 	
+	public Users updateUserStatus(String username, boolean status);
+	
+	public Users updateFullNameAndUserRole(String username, String fullName, String role);
+	
 }

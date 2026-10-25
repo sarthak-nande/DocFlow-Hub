@@ -92,6 +92,38 @@ export const updateUserDetails = createAsyncThunk(
   }
 );
 
+// Toggle User Status
+export const changeUserStatus = createAsyncThunk(
+  'auth/changeUserStatus',
+  async ({ username, status }, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      const response = await axiosInstance.post('/user/edit/status', { username, status });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || 'Failed to update user status'
+      );
+    }
+  }
+);
+
+// Update User Name and Role
+export const updateUserNameAndRole = createAsyncThunk(
+  'auth/updateUserNameAndRole',
+  async ({ username, name, role }, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      const response = await axiosInstance.post('/user/edit/name/role', { username, name, role });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || 'Failed to update user details'
+      );
+    }
+  }
+);
+
 // ─── Initial state ─────────────────────────────────────────────────────────────
 
 const storedToken = localStorage.getItem('docflow_token');
