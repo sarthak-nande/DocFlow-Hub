@@ -20,6 +20,6 @@ public interface UserRepository extends MongoRepository<Users, String>{
 	boolean existsByOrganizationId(String organizationId);
 	
 	List<Users> findUserByOrganizationId(String organizationId);
-
+	
 	void save(UserDto userDto);
 }

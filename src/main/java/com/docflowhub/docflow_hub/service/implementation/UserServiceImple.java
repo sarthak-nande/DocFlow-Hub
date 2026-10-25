@@ -153,7 +153,37 @@ public class UserServiceImple implements UserService {
 	    
 	    return List.of();
 	}
-	
+
+	@Override
+	public Users updateUserStatus(String username, boolean status) {
+		Users user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+		
+		try {
+			user.setActive(status);
+			userRepository.save(user);
+		}catch (Exception e) {
+			return null;
+		}
+		
+		return user;
+	}
+
+	@Override
+	public Users updateFullNameAndUserRole(String username, String fullName, String role) {
+
+		Users user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+		
+		try {
+			user.setName(fullName);
+			Role userRole = Role.valueOf(role);
+			user.setRole(userRole);
+			userRepository.save(user);
+		}catch (Exception e) {
+			return null;
+		}
+		
+		return user;
+	}
 	
 
 }

@@ -3,7 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Building2, Loader2, RefreshCw, Search, ShieldCheck, Users, Pencil, X, Check, UserPlus } from 'lucide-react';
 import WorkspaceLayout from '../components/WorkspaceLayout';
-import { fetchUsersByOrganization, fetchUserDetails, clearAuthError } from '../features/auth/authSlice';
+import { fetchUsersByOrganization, fetchUserDetails, clearAuthError, changeUserStatus, updateUserNameAndRole } from '../features/auth/authSlice';
+
+function hasRole(user, targetRole) {
+  const role = user?.role || user?.authorities?.[0]?.authority || user?.authorities?.[0] || '';
+  const normalized = role.toUpperCase();
+  const target = targetRole.toUpperCase();
+  return normalized === target || normalized === `ROLE_${target}`;
+}
 
 export default function ManageUsers() {
   const dispatch = useDispatch();
@@ -22,7 +29,9 @@ export default function ManageUsers() {
   const userData = user?.object ? user.object : (user || {});
 
   const orgId = userData?.organizationId || userData?.orgId || new URLSearchParams(window.location.search).get('orgId') || '';
-  const isAdmin = userData?.role === 'ROLE_ADMIN' || userData?.role === 'ADMIN';
+  
+  // Support both Admin and Approver roles for accessing/managing this view
+  const canAccess = hasRole(userData, 'ADMIN') || hasRole(userData, 'APPROVER');
 
   useState(() => {
     if (username && !user) {
@@ -40,10 +49,10 @@ export default function ManageUsers() {
   };
 
   useMemo(() => {
-    if (isAdmin && orgId) {
+    if (canAccess && orgId) {
       loadUsers();
     }
-  }, [isAdmin, orgId]);
+  }, [canAccess, orgId]);
 
   // Handler to open the edit modal
   const handleOpenEdit = (targetUser) => {
@@ -52,33 +61,37 @@ export default function ManageUsers() {
     setEditRole(targetUser.role || 'ROLE_USER');
   };
 
-  // Handler for saving edited user details (Ready for your future async thunk)
-  const handleSaveEdit = (e) => {
+  // Handler for saving edited user details (aligned with UpdateNameAndRoleDto)
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingUser) return;
 
-    const updatedPayload = {
-      ...editingUser,
+    const targetUsername = editingUser.email || editingUser.username;
+    const result = await dispatch(updateUserNameAndRole({
+      username: targetUsername,
       name: editName,
       role: editRole,
-    };
+    }));
 
-    console.log('TODO: Dispatch update user thunk with:', updatedPayload);
-    // dispatch(updateUserByAdmin(updatedPayload));
-
-    setEditingUser(null); // Close modal
+    if (!result.error) {
+      setEditingUser(null);
+      loadUsers(); // Refresh the list
+    }
   };
 
-  // Handler for activating/deactivating a user (Ready for your future async thunk)
-  const handleToggleActive = (targetUser) => {
+  // Handler for activating/deactivating a user via toggle switch (aligned with UpdateStatusDto)
+  const handleToggleActive = async (targetUser) => {
     const nextActiveStatus = !(targetUser.active !== false);
-    const updatedPayload = {
-      ...targetUser,
-      active: nextActiveStatus,
-    };
+    const targetUsername = targetUser.email || targetUser.username;
 
-    console.log('TODO: Dispatch activate/deactivate thunk with:', updatedPayload);
-    // dispatch(updateUserByAdmin(updatedPayload));
+    const result = await dispatch(changeUserStatus({
+      username: targetUsername,
+      status: nextActiveStatus,
+    }));
+
+    if (!result.error) {
+      loadUsers(); // Refresh the list
+    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -93,7 +106,7 @@ export default function ManageUsers() {
 
   const displayError = localError || reduxError;
 
-  if (!isAdmin && user) {
+  if (!canAccess && user) {
     return (
       <WorkspaceLayout title="Access denied">
         <main className="mx-auto flex min-h-[calc(100vh-80px)] max-w-3xl items-center justify-center px-5 py-10">
@@ -101,9 +114,9 @@ export default function ManageUsers() {
             <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
               <ShieldCheck className="size-7" />
             </div>
-            <h1 className="mt-5 text-2xl font-bold text-slate-950">Admin access required</h1>
+            <h1 className="mt-5 text-2xl font-bold text-slate-950">Authorization required</h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
-              Only organization administrators can view the member directory.
+              Only authorized administrators or approvers can view the member directory.
             </p>
           </section>
         </main>
@@ -116,12 +129,11 @@ export default function ManageUsers() {
       <main className="mx-auto w-full max-w-6xl px-5 py-8 lg:px-10">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary">Admin workspace</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary">Workspace management</p>
             <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Organization users</h1>
             <p className="mt-3 text-base leading-7 text-slate-500">Manage and review everyone who has access to your shared documents.</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Create User Button */}
             <button
               type="button"
               onClick={() => navigate('/register-users')}
@@ -129,8 +141,6 @@ export default function ManageUsers() {
             >
               <UserPlus className="size-4" /> Create User
             </button>
-            
-            {/* Refresh Button */}
             <button 
               type="button" 
               onClick={loadUsers} 
@@ -226,7 +236,6 @@ export default function ManageUsers() {
                         </td>
                         <td className="px-6 py-5 text-right">
                           <div className="flex items-center justify-end gap-3">
-                            {/* Modern Sliding Toggle Switch */}
                             <div className="flex items-center gap-2" title={isActive ? 'Deactivate user' : 'Activate user'}>
                               <button
                                 type="button"
@@ -246,7 +255,6 @@ export default function ManageUsers() {
                               </button>
                             </div>
 
-                            {/* Edit Button */}
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(user)}
@@ -301,6 +309,7 @@ export default function ManageUsers() {
                     className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-orange-100"
                   >
                     <option value="ROLE_USER">User</option>
+                    <option value="ROLE_APPROVER">Approver</option>
                     <option value="ROLE_ADMIN">Admin</option>
                   </select>
                 </div>
