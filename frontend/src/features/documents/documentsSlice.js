@@ -17,26 +17,6 @@ export const checkDocumentServiceStatus = createAsyncThunk(
   }
 );
 
-export const uploadDocument = createAsyncThunk(
-  'documents/upload',
-  async (file, { rejectWithValue }) => {
-    try {
-      await fetchCsrfToken();
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await axiosInstance.post('/documents/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return response.data;
-    } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || 'Upload failed'
-      );
-    }
-  }
-);
-
 export const registerOrgUser = createAsyncThunk(
   'documents/registerOrgUser',
   async (orgUserDto, { rejectWithValue }) => {
@@ -47,6 +27,26 @@ export const registerOrgUser = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || 'Failed to register user'
+      );
+    }
+  }
+);
+
+// Add this inside your authSlice.js file
+export const uploadDocument = createAsyncThunk(
+  'auth/uploadDocument',
+  async (file, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Axios automatically handles 'multipart/form-data' headers when given FormData
+      const response = await axiosInstance.post('/documents/upload', formData);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || 'Failed to store file.'
       );
     }
   }
