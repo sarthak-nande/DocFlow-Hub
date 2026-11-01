@@ -1,245 +1,132 @@
-import { useEffect, useState, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { uploadDocument, clearUploadState, checkDocumentServiceStatus } from '../features/documents/documentsSlice';
-import Layout from '../components/Layout';
-import { Button } from '../components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
-import { Badge } from '../components/ui/badge';
-import {
-  Upload,
-  FileText,
-  Image,
-  File,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  CloudUpload,
-  Info,
-  HardDrive,
-} from 'lucide-react';
-import { cn } from '../lib/utils';
+import { useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { CheckCircle2, File, FileImage, FileText, Loader2, UploadCloud, X } from 'lucide-react'
+import WorkspaceLayout from '../components/WorkspaceLayout'
+import { uploadDocument } from '../features/auth/authSlice' // Adjust path to your slice
 
-const ALLOWED_TYPES = {
-  'application/pdf': { icon: FileText, label: 'PDF', color: 'text-red-400' },
-  'image/jpeg': { icon: Image, label: 'JPEG', color: 'text-blue-400' },
-  'image/png': { icon: Image, label: 'PNG', color: 'text-green-400' },
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
-    icon: File, label: 'DOCX', color: 'text-indigo-400',
-  },
-};
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
 
-function formatBytes(bytes) {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg,.png,.docx'
+
+function formatFileSize(bytes) {
+  if (!bytes) return '0 KB'
+  const units = ['Bytes', 'KB', 'MB', 'GB']
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
+  return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`
 }
 
-export default function DocumentsPage() {
-  const dispatch = useDispatch();
-  const { serviceStatus, statusLoading, uploadLoading, uploadedFile, uploadError, uploadSuccess } =
-    useSelector((state) => state.documents);
+function getFileIcon(type) {
+  if (type.startsWith('image/')) return FileImage
+  if (type === 'application/pdf') return FileText
+  return File
+}
 
-  const [dragOver, setDragOver] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [fileError, setFileError] = useState('');
-  const fileInputRef = useRef();
+export default function DocumentUpload() {
+  const dispatch = useDispatch()
+  const { loading: isUploading, error: reduxError } = useSelector((state) => state.auth)
 
-  useEffect(() => {
-    dispatch(checkDocumentServiceStatus());
-    return () => dispatch(clearUploadState());
-  }, [dispatch]);
+  const inputRef = useRef(null)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [responseMessage, setResponseMessage] = useState(null)
 
-  const validateFile = (file) => {
-    if (!ALLOWED_TYPES[file.type]) {
-      setFileError('Invalid file type. Only PDF, JPEG, PNG, and DOCX are allowed.');
-      return false;
+  const chooseFile = (file) => {
+    setResponseMessage(null)
+    if (!file) return
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setResponseMessage({ type: 'error', message: 'Unsupported file type. Upload a PDF, JPG, PNG, or DOCX file.' })
+      setSelectedFile(null)
+      return
     }
-    if (file.size > 15 * 1024 * 1024) {
-      setFileError('File exceeds 15 MB limit.');
-      return false;
+    setSelectedFile(file)
+  }
+
+  const handleDrop = (event) => {
+    event.preventDefault()
+    setIsDragging(false)
+    chooseFile(event.dataTransfer.files?.[0])
+  }
+
+  const handleUpload = async () => {
+    if (!selectedFile || isUploading) return
+
+    setResponseMessage(null)
+    const resultAction = await dispatch(uploadDocument(selectedFile))
+
+    if (uploadDocument.fulfilled.match(resultAction)) {
+      const data = resultAction.payload
+      setResponseMessage({ type: 'success', message: data?.message || 'File stored successfully.', data })
+      setSelectedFile(null)
+      if (inputRef.current) inputRef.current.value = ''
+    } else {
+      setResponseMessage({ type: 'error', message: resultAction.payload || 'Unable to upload the file.' })
     }
-    setFileError('');
-    return true;
-  };
+  }
 
-  const handleFileSelect = (file) => {
-    if (file && validateFile(file)) {
-      setSelectedFile(file);
-      dispatch(clearUploadState());
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFileSelect(file);
-  };
-
-  const handleInputChange = (e) => {
-    const file = e.target.files[0];
-    if (file) handleFileSelect(file);
-  };
-
-  const handleUpload = () => {
-    if (selectedFile) {
-      dispatch(uploadDocument(selectedFile)).then(() => {
-        setSelectedFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      });
-    }
-  };
-
-  const FileIcon = selectedFile ? (ALLOWED_TYPES[selectedFile.type]?.icon || File) : CloudUpload;
-  const fileColor = selectedFile ? (ALLOWED_TYPES[selectedFile.type]?.color || 'text-primary') : 'text-muted-foreground';
+  const FileIcon = selectedFile ? getFileIcon(selectedFile.type) : File
+  const displayError = responseMessage?.type === 'error' ? responseMessage.message : null
 
   return (
-    <Layout title="Documents">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Service status banner */}
-        <div className="glass rounded-xl border border-border p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <HardDrive className="w-5 h-5 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium text-foreground">Document Service</p>
-              <p className="text-xs text-muted-foreground">Storage backend health status</p>
-            </div>
+    <WorkspaceLayout title="Upload document">
+      <main className="min-h-[calc(100vh-72px)] bg-[#f8fbff] px-5 py-8 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-8 max-w-2xl">
+            <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-[#f07828]">Document center</p>
+            <h1 className="text-3xl font-bold tracking-tight text-[#12365c] sm:text-4xl">Share a document with your organization</h1>
+            <p className="mt-3 text-base leading-7 text-slate-500">Upload a document securely so your team can review and collaborate on the latest version.</p>
           </div>
-          {statusLoading ? (
-            <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
-          ) : serviceStatus && serviceStatus !== 'error' ? (
-            <Badge variant="success">● Online</Badge>
-          ) : (
-            <Badge variant="destructive">● Offline</Badge>
-          )}
-        </div>
 
-        {/* Upload area */}
-        <div className="glass rounded-2xl border border-border p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-1">Upload Document</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Accepted formats: PDF, JPEG, PNG, DOCX · Max size: 15 MB
-          </p>
-
-          {/* Drop zone */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={cn(
-              "relative border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200",
-              dragOver
-                ? "border-primary bg-primary/10"
-                : selectedFile
-                ? "border-emerald-500/50 bg-emerald-500/5"
-                : "border-border hover:border-primary/50 hover:bg-primary/5"
-            )}
-            id="file-dropzone"
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.docx"
-              onChange={handleInputChange}
-              className="hidden"
-              id="file-input"
-            />
-
-            <div className="flex flex-col items-center gap-3">
-              <div className={cn(
-                "w-16 h-16 rounded-2xl flex items-center justify-center transition-all",
-                selectedFile ? "bg-emerald-500/15" : "bg-primary/10"
-              )}>
-                <FileIcon className={cn("w-8 h-8 transition-all", selectedFile ? "text-emerald-400" : fileColor)} />
+          <section className="rounded-[28px] border border-[#dbe8f3] bg-white p-5 shadow-[0_20px_60px_rgba(18,54,92,0.08)] sm:p-8">
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Choose a document to upload"
+              onClick={() => inputRef.current?.click()}
+              onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') inputRef.current?.click() }}
+              onDragOver={(event) => { event.preventDefault(); setIsDragging(true) }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={`flex min-h-[280px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 text-center transition ${isDragging ? 'border-[#f07828] bg-[#fff6ee]' : 'border-[#b9d3e8] bg-[#f8fbff] hover:border-[#2674b9] hover:bg-[#f5faff]'}`}
+            >
+              <div className="flex size-16 items-center justify-center rounded-2xl bg-[#e7f2fb] text-[#2674b9]">
+                <UploadCloud className="size-8" />
               </div>
-
-              {selectedFile ? (
-                <>
-                  <p className="font-medium text-foreground">{selectedFile.name}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <Badge variant="outline">{ALLOWED_TYPES[selectedFile.type]?.label}</Badge>
-                    <span>{formatBytes(selectedFile.size)}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Click to change file</p>
-                </>
-              ) : (
-                <>
-                  <p className="font-medium text-foreground">
-                    {dragOver ? 'Drop your file here' : 'Drag & drop a file or click to browse'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">PDF, JPEG, PNG, DOCX up to 15MB</p>
-                </>
-              )}
+              <h2 className="mt-5 text-lg font-bold text-[#12365c]">Drop your document here</h2>
+              <p className="mt-2 text-sm text-slate-500">or <span className="font-bold text-[#2674b9]">browse from your computer</span></p>
+              <p className="mt-4 text-xs font-medium text-slate-400">Supported formats: PDF, JPG, PNG, DOCX</p>
+              <input ref={inputRef} type="file" accept={ACCEPTED_EXTENSIONS} className="sr-only" onChange={(event) => chooseFile(event.target.files?.[0])} />
             </div>
-          </div>
 
-          {/* File validation error */}
-          {fileError && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{fileError}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Upload button */}
-          <Button
-            onClick={handleUpload}
-            disabled={!selectedFile || uploadLoading}
-            size="lg"
-            className="w-full mt-4"
-            id="upload-btn"
-          >
-            {uploadLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4" />
-                Upload Document
-              </>
-            )}
-          </Button>
-        </div>
-
-        {/* Upload result */}
-        {uploadSuccess && uploadedFile && (
-          <Alert variant="success" className="animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <AlertTitle>Upload Successful!</AlertTitle>
-            <AlertDescription>
-              <div className="mt-2 space-y-1 text-xs">
-                <p><span className="text-muted-foreground">File:</span> {uploadedFile.originalFileName}</p>
-                <p><span className="text-muted-foreground">Type:</span> {uploadedFile.fileType}</p>
-                <p><span className="text-muted-foreground">Size:</span> {formatBytes(uploadedFile.sizeInBytes)}</p>
-                <p><span className="text-muted-foreground">Path:</span> <code className="bg-black/20 px-1 rounded">{uploadedFile.storagePath}</code></p>
+            {selectedFile && (
+              <div className="mt-5 flex items-center gap-4 rounded-2xl border border-[#dbe8f3] bg-[#f8fbff] p-4">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#e7f2fb] text-[#2674b9]"><FileIcon className="size-6" /></div>
+                <div className="min-w-0 flex-1"><p className="truncate font-semibold text-[#12365c]">{selectedFile.name}</p><p className="mt-1 text-sm text-slate-500">{formatFileSize(selectedFile.size)}</p></div>
+                <button type="button" aria-label="Remove selected file" onClick={() => { setSelectedFile(null); setResponseMessage(null); if (inputRef.current) inputRef.current.value = '' }} className="rounded-lg p-2 text-slate-400 transition hover:bg-white hover:text-[#d45135]"><X className="size-5" /></button>
               </div>
-            </AlertDescription>
-          </Alert>
-        )}
+            )}
 
-        {uploadError && (
-          <Alert variant="destructive" className="animate-fade-in">
-            <XCircle className="w-4 h-4" />
-            <AlertTitle>Upload Failed</AlertTitle>
-            <AlertDescription>{uploadError}</AlertDescription>
-          </Alert>
-        )}
+            {responseMessage && (
+              <div className={`mt-5 flex items-start gap-3 rounded-2xl border p-4 text-sm ${responseMessage.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-red-200 bg-red-50 text-red-700'}`} role="status">
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
+                <p>{responseMessage.message}</p>
+              </div>
+            )}
 
-        {/* Info panel */}
-        <div className="glass rounded-xl border border-border p-5">
-          <div className="flex items-start gap-3">
-            <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>Documents are stored securely on the server under <code className="bg-secondary/50 px-1 rounded text-xs">uploads/docflow-files/</code></p>
-              <p>Each upload is protected by JWT authentication and CSRF token validation.</p>
+            <div className="mt-7 flex flex-col-reverse gap-3 border-t border-[#e6eef5] pt-6 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => { setSelectedFile(null); setResponseMessage(null); if (inputRef.current) inputRef.current.value = '' }} className="rounded-xl px-5 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-50">Clear</button>
+              <button type="button" disabled={!selectedFile || isUploading} onClick={handleUpload} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f07828] px-6 py-3 text-sm font-bold text-white shadow-[0_8px_18px_rgba(240,120,40,0.22)] transition hover:bg-[#db641b] disabled:cursor-not-allowed disabled:opacity-50">
+                {isUploading && <Loader2 className="size-4 animate-spin" />}
+                {isUploading ? 'Uploading...' : 'Upload document'}
+              </button>
             </div>
-          </div>
+          </section>
         </div>
-      </div>
-    </Layout>
-  );
+      </main>
+    </WorkspaceLayout>
+  )
 }

@@ -92,6 +92,29 @@ export const updateUserDetails = createAsyncThunk(
   }
 );
 
+export const uploadDocument = createAsyncThunk(
+  'auth/uploadDocument',
+  async (file, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Explicitly set Content-Type to multipart/form-data and let Axios append the boundary
+      const response = await axiosInstance.post('/documents/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || 'Failed to store file.'
+      );
+    }
+  }
+);
+
 // Toggle User Status
 export const changeUserStatus = createAsyncThunk(
   'auth/changeUserStatus',
