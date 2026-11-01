@@ -41,30 +41,36 @@ public class DocumentController {
     	return ResponseEntity.ok("API Working Okay");
     }
     
-    @PostMapping(value = "/upload" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FileUploadResponseDto> uploadFile(@RequestParam("file") MultipartFile file){
-    	
-    	if(file.isEmpty()) {
-    		return ResponseEntity.badRequest().body(
-    				new FileUploadResponseDto(null,null,0, null, "Error: File Is Empty"));
-    	}
-    	
-    	String contentType = file.getContentType();
-    	
-    	if(contentType == null && !ALLOWD_FILES_TYPES.contains(contentType)) {
-    		return ResponseEntity.badRequest().body(
-    				new FileUploadResponseDto(null, null, 0, null, "Error: File Type Is Invalid"));
-    	}
-    	
-    	try {
-			String storagePath = documentStorageService.uploadFile(file);
-			
-			return ResponseEntity.status(HttpStatus.CREATED).body(
-					new FileUploadResponseDto(file.getOriginalFilename(),contentType,file.getSize(),storagePath, "File Stored Successfuly"));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().body(
-    				new FileUploadResponseDto(null, null, 0, null, "Error: Falied To Store File"));
-		}
+    @PostMapping(value = "/upload-multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<FileUploadResponseDto>> uploadMultipleFiles(
+            @RequestParam("files") MultipartFile[] files) {
+
+        if (files == null || files.length == 0) {
+            return ResponseEntity.badRequest().body(
+                    List.of(new FileUploadResponseDto(null, null, 0, null, "Error: No files selected"))
+            );
+        }
+
+        // Validate MIME types
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                String contentType = file.getContentType();
+                if (contentType == null || !ALLOWD_FILES_TYPES.contains(contentType)) {
+                    return ResponseEntity.badRequest().body(
+                            List.of(new FileUploadResponseDto(
+                                    file.getOriginalFilename(),
+                                    contentType,
+                                    file.getSize(),
+                                    null,
+                                    "Error: File type not permitted"
+                            ))
+                    );
+                }
+            }
+        }
+
+        List<FileUploadResponseDto> responseList = documentStorageService.uploadFiles(files);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseList);
     }
     
  
