@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, FileText, LayoutDashboard, LogOut, Upload, UserRound, Zap, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, LayoutDashboard, LogOut, Upload, UserRound, Zap, Users,Folder } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 
@@ -8,7 +8,8 @@ const navItems = [
   { to: '/documents', label: 'Documents', icon: FileText },
   { to: '/upload', label: 'Upload', icon: Upload },
   { to: '/manage-users', label: 'Manage Users', icon: Users },
-  { to: '/profile', label: 'Profile', icon: UserRound }
+  { to: '/profile', label: 'Profile', icon: UserRound },
+  { to: '/folders', label: 'Folders', icon: Folder },
 ];
 
 export default function Sidebar({ collapsed, onToggle, mobileMenuOpen, setMobileMenuOpen }) {

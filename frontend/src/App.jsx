@@ -10,6 +10,7 @@ import ManageUsers from './pages/ManageUsersPage';
 import ProfilePage from './pages/ProfilePage';
 import ResetPasswordPage from './pages/ResetPassword';
 import AdminPage from './pages/AdminPage';
+import Folders from './pages/FoldersPage';
 
 export default function App() {
   return (
@@ -67,6 +68,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/folders"
+        element={
+          <ProtectedRoute>
+            <Folders />
           </ProtectedRoute>
         }
       />
