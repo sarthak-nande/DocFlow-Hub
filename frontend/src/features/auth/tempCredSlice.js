@@ -39,10 +39,6 @@ export const createNewPassword = createAsyncThunk(
       await fetchCsrfToken();
 
       const response = await axiosInstance.post('/user/create/password', {
-        params: {
-          email: username,
-          password: password
-        },
         username,
         password
       });

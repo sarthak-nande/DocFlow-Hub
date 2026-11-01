@@ -8,7 +8,9 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -105,6 +107,66 @@ public class DocumentController {
                     LocalDateTime.now()
             );
 
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+    
+    @DeleteMapping("/delete/{documentId}")
+    public ResponseEntity<?> deleteDocument(@PathVariable("documentId") String documentId, HttpServletRequest request) {
+        try {
+            boolean isDeleted = documentStorageService.deleteDocument(documentId);
+
+            if (!isDeleted) {
+                ErrorResponseDto<String> errorResponse = new ErrorResponseDto<>(
+                        request.getRequestURI(),
+                        HttpStatus.NOT_FOUND,
+                        "Document not found or unauthorized",
+                        LocalDateTime.now()
+                );
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+
+            SuccessResponseDto<String> response = new SuccessResponseDto<>(
+                    request.getRequestURI(),
+                    HttpStatus.OK,
+                    "Document deleted successfully",
+                    "Deleted Document ID: " + documentId,
+                    LocalDateTime.now()
+            );
+
+            return ResponseEntity.ok().body(response);
+        } catch (Exception e) {
+            ErrorResponseDto<String> errorResponse = new ErrorResponseDto<>(
+                    request.getRequestURI(),
+                    HttpStatus.BAD_REQUEST,
+                    e.getMessage(),
+                    LocalDateTime.now()
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/download/{documentId}")
+    public ResponseEntity<?> downloadDocument(@PathVariable("documentId") String documentId, HttpServletRequest request) {
+        try {
+            org.springframework.core.io.Resource resource = documentStorageService.downloadDocument(documentId);
+            
+            // We need the filename to set the Content-Disposition header.
+            // A quick way is to extract it from the resource filename
+            String filename = resource.getFilename();
+
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            ErrorResponseDto<String> errorResponse = new ErrorResponseDto<>(
+                    request.getRequestURI(),
+                    HttpStatus.BAD_REQUEST,
+                    e.getMessage(),
+                    LocalDateTime.now()
+            );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }

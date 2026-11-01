@@ -1,120 +1,188 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axiosInstance, { fetchCsrfToken } from '../../api/axiosInstance';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axiosInstance, { fetchCsrfToken } from "../../api/axiosInstance";
 
 // ─── Async thunks ──────────────────────────────────────────────────────────────
 
 export const fetchFolders = createAsyncThunk(
-  'folders/fetchAll',
+  "folders/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
       await fetchCsrfToken();
-      const response = await axiosInstance.get('/folders/organization/all');
+      const response = await axiosInstance.get("/folders/organization/all");
       return response.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || err.response?.data || 'Failed to fetch folders'
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Failed to fetch folders",
       );
     }
-  }
+  },
 );
 
 export const createFolder = createAsyncThunk(
-  'folders/create',
+  "folders/create",
   async ({ name, parentId = null }, { rejectWithValue }) => {
     try {
       await fetchCsrfToken();
-      const response = await axiosInstance.post('/folders/create', { name, parentId });
+      const response = await axiosInstance.post("/folders/create", {
+        name,
+        parentId,
+      });
       return response.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || err.response?.data || 'Failed to create folder'
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Failed to create folder",
       );
     }
-  }
+  },
 );
 
 export const renameFolder = createAsyncThunk(
-  'folders/rename',
+  "folders/rename",
   async ({ folderId, newName }, { rejectWithValue }) => {
     try {
       await fetchCsrfToken();
-      const response = await axiosInstance.put('/folders/edit/name', { folderId, newName });
+      const response = await axiosInstance.put("/folders/edit/name", {
+        folderId,
+        newName,
+      });
       return response.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || err.response?.data || 'Failed to rename folder'
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Failed to rename folder",
       );
     }
-  }
+  },
 );
 
 export const deleteFolder = createAsyncThunk(
-  'folders/delete',
+  "folders/delete",
   async (folderId, { rejectWithValue }) => {
     try {
       await fetchCsrfToken();
       // Notice we pass the folderId dynamically in the path
-      const response = await axiosInstance.delete(`/folders/delete/${encodeURIComponent(folderId)}`);
+      const response = await axiosInstance.delete(
+        `/folders/delete/${encodeURIComponent(folderId)}`,
+      );
       // Return the folderId so we know which item to remove from the state
       return folderId;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || err.response?.data || 'Failed to delete folder'
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Failed to delete folder",
       );
     }
-  }
+  },
 );
 
 export const uploadFiles = createAsyncThunk(
-  'folders/uploadFiles',
+  "folders/uploadFiles",
   async ({ files, folderId = null }, { rejectWithValue, dispatch }) => {
     try {
       await fetchCsrfToken();
       const formData = new FormData();
-      
+
       Array.from(files).forEach((file) => {
-        formData.append('files', file);
+        formData.append("files", file);
       });
-      
+
       if (folderId) {
-        formData.append('folderId', folderId);
+        formData.append("folderId", folderId);
       }
 
-      const response = await axiosInstance.post('/documents/upload-multiple', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      const response = await axiosInstance.post(
+        "/documents/upload-multiple",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         },
-      });
-      
+      );
+
       // Refresh folder list after a successful upload
       dispatch(fetchFolders());
-      
+
       return response.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || err.response?.data || 'Failed to upload files'
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Failed to upload files",
       );
     }
-  }
+  },
 );
 
 export const fetchDocuments = createAsyncThunk(
-  'folders/fetchDocuments',
+  "folders/fetchDocuments",
   async (folderId = null, { rejectWithValue }) => {
     try {
       await fetchCsrfToken();
       // Pass the folderId as a query parameter
-      const response = await axiosInstance.get('/documents/folder', {
-        params: { folderId }
+      const response = await axiosInstance.get("/documents/folder", {
+        params: { folderId },
       });
       return response.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || err.response?.data || 'Failed to fetch documents'
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Failed to fetch documents",
+      );
+    }
+  },
+);
+
+export const deleteDocumentFile = createAsyncThunk(
+  'folders/deleteDocument',
+  async (documentId, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      await axiosInstance.delete(`/documents/delete/${encodeURIComponent(documentId)}`);
+      return documentId;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || 'Failed to delete document'
       );
     }
   }
 );
+
+// Add this helper function to folderSlice.js
+export const getDocumentPreviewUrl = async (documentId, mimeType) => {
+  await fetchCsrfToken();
+  const response = await axiosInstance.get(`/documents/download/${encodeURIComponent(documentId)}`, {
+    responseType: 'blob', 
+  });
+  
+  // Explicitly set the MIME type so the browser knows how to render it in an iframe
+  const blob = new Blob([response.data], { type: mimeType });
+  return window.URL.createObjectURL(blob);
+};
+
+// Helper function for downloading directly (does not need to go in Redux state)
+export const downloadDocumentFile = async (documentId, fileName) => {
+  await fetchCsrfToken();
+  const response = await axiosInstance.get(`/documents/download/${encodeURIComponent(documentId)}`, {
+    responseType: 'blob', // Crucial for handling binary file streams
+  });
+  
+  // Create a temporary URL and trigger browser download
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', fileName);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode.removeChild(link);
+};
 
 // ─── Initial state ─────────────────────────────────────────────────────────────
 
@@ -130,7 +198,7 @@ const initialState = {
 // ─── Slice ─────────────────────────────────────────────────────────────────────
 
 const folderSlice = createSlice({
-  name: 'folders',
+  name: "folders",
   initialState,
   reducers: {
     clearFolderError(state) {
@@ -150,7 +218,8 @@ const folderSlice = createSlice({
       .addCase(fetchFolders.fulfilled, (state, action) => {
         state.loading = false;
         // Unwrap API wrapper (SuccessResponseDto wraps payload in 'object' or 'data')
-        const payload = action.payload?.object || action.payload?.data || action.payload;
+        const payload =
+          action.payload?.object || action.payload?.data || action.payload;
         state.items = Array.isArray(payload) ? payload : [];
       })
       .addCase(fetchFolders.rejected, (state, action) => {
@@ -167,7 +236,8 @@ const folderSlice = createSlice({
       })
       .addCase(createFolder.fulfilled, (state, action) => {
         state.loading = false;
-        const payload = action.payload?.object || action.payload?.data || action.payload;
+        const payload =
+          action.payload?.object || action.payload?.data || action.payload;
         if (payload) {
           state.items.push(payload);
         }
@@ -185,9 +255,12 @@ const folderSlice = createSlice({
       })
       .addCase(renameFolder.fulfilled, (state, action) => {
         state.loading = false;
-        const updatedFolder = action.payload?.object || action.payload?.data || action.payload;
+        const updatedFolder =
+          action.payload?.object || action.payload?.data || action.payload;
         const index = state.items.findIndex(
-          (folder) => folder.id === updatedFolder?.id || folder.folderId === updatedFolder?.folderId
+          (folder) =>
+            folder.id === updatedFolder?.id ||
+            folder.folderId === updatedFolder?.folderId,
         );
         if (index !== -1) {
           state.items[index] = updatedFolder;
@@ -208,7 +281,8 @@ const folderSlice = createSlice({
         state.loading = false;
         // action.payload is the folderId returned from our thunk
         state.items = state.items.filter(
-          (folder) => folder.id !== action.payload && folder.folderId !== action.payload
+          (folder) =>
+            folder.id !== action.payload && folder.folderId !== action.payload,
         );
       })
       .addCase(deleteFolder.rejected, (state, action) => {
@@ -232,20 +306,41 @@ const folderSlice = createSlice({
         state.error = action.payload;
       });
 
-      builder
+    builder
       .addCase(fetchDocuments.pending, (state) => {
         state.docLoading = true;
         state.error = null;
       })
       .addCase(fetchDocuments.fulfilled, (state, action) => {
         state.docLoading = false;
-        const payload = action.payload?.object || action.payload?.data || action.payload;
+        const payload =
+          action.payload?.object || action.payload?.data || action.payload;
         state.documents = Array.isArray(payload) ? payload : [];
       })
       .addCase(fetchDocuments.rejected, (state, action) => {
         state.docLoading = false;
         state.error = action.payload;
         state.documents = [];
+      });
+
+   // Delete Document
+    builder
+      .addCase(deleteDocumentFile.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(deleteDocumentFile.fulfilled, (state, action) => {
+        state.docLoading = false;
+        
+        // THIS IS THE FIX: If state.documents is undefined, make it an empty array so .filter() doesn't crash!
+        const currentDocs = state.documents || []; 
+        
+        state.documents = currentDocs.filter(
+          (doc) => doc.id !== action.payload && doc._id !== action.payload
+        );
+      })
+      .addCase(deleteDocumentFile.rejected, (state, action) => {
+        state.docLoading = false;
+        state.error = action.payload;
       });
   },
 });

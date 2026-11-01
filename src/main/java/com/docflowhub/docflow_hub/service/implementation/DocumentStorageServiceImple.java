@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -181,5 +182,64 @@ public class DocumentStorageServiceImple implements DocumentStorageService {
 
         // Fetch documents from the repository
         return documentRepository.findByCompanyIdAndFolderId(companyId, targetFolderId);
+    }
+    
+    @Override
+    public boolean deleteDocument(String documentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Users user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
+
+        Documents document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found with ID: " + documentId));
+
+        // Security check
+        if (!user.getOrganizationId().equals(document.getCompanyId())) {
+            throw new RuntimeException("Unauthorized to delete this document");
+        }
+
+        try {
+            // Delete the physical file from the server
+            Path filePath = Paths.get(document.getDocumentPath());
+            Files.deleteIfExists(filePath);
+
+            // Delete the database record
+            documentRepository.delete(document);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete the document file: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Resource downloadDocument(String documentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Users user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
+
+        Documents document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found with ID: " + documentId));
+
+        // Security check
+        if (!user.getOrganizationId().equals(document.getCompanyId())) {
+            throw new RuntimeException("Unauthorized to download this document");
+        }
+
+        try {
+            Path filePath = Paths.get(document.getDocumentPath()).normalize();
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("File not found or not readable on the server");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error while downloading file: " + e.getMessage());
+        }
     }
 }
