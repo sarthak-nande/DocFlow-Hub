@@ -4,7 +4,7 @@ package com.docflowhub.docflow_hub.controller;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -168,6 +169,52 @@ public class DocumentController {
                     LocalDateTime.now()
             );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+    
+    @GetMapping("/organization/all")
+    public ResponseEntity<?> getOrganizationDocuments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false, defaultValue = "") String search,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            HttpServletRequest request) {
+        try {
+            Page<Documents> documentsPage = documentStorageService.getOrganizationDocuments(page, size, search, status);
+
+            SuccessResponseDto<Page<Documents>> response = new SuccessResponseDto<>(
+                    request.getRequestURI(),
+                    HttpStatus.OK,
+                    "Documents retrieved successfully",
+                    documentsPage,
+                    LocalDateTime.now()
+            );
+            return ResponseEntity.ok().body(response);
+        } catch (Exception e) {
+            ErrorResponseDto<String> error = new ErrorResponseDto<>(request.getRequestURI(), HttpStatus.BAD_REQUEST, e.getMessage(), LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    @PutMapping("/status/{documentId}")
+    public ResponseEntity<?> updateDocumentStatus(
+            @PathVariable String documentId,
+            @RequestParam String status,
+            HttpServletRequest request) {
+        try {
+            Documents updatedDoc = documentStorageService.updateDocumentStatus(documentId, status);
+
+            SuccessResponseDto<Documents> response = new SuccessResponseDto<>(
+                    request.getRequestURI(),
+                    HttpStatus.OK,
+                    "Document status updated to " + status,
+                    updatedDoc,
+                    LocalDateTime.now()
+            );
+            return ResponseEntity.ok().body(response);
+        } catch (Exception e) {
+            ErrorResponseDto<String> error = new ErrorResponseDto<>(request.getRequestURI(), HttpStatus.BAD_REQUEST, e.getMessage(), LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
  

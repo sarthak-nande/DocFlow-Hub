@@ -27,6 +27,10 @@ import com.docflowhub.docflow_hub.repository.DocumentRepository;
 import com.docflowhub.docflow_hub.repository.FolderRepository;
 import com.docflowhub.docflow_hub.repository.UserRepository;
 import com.docflowhub.docflow_hub.service.DocumentStorageService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class DocumentStorageServiceImple implements DocumentStorageService {
@@ -241,5 +245,45 @@ public class DocumentStorageServiceImple implements DocumentStorageService {
         } catch (Exception e) {
             throw new RuntimeException("Error while downloading file: " + e.getMessage());
         }
+    }
+    
+    @Override
+    public Page<Documents> getOrganizationDocuments(int page, int size, String search, String status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Users user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        String safeSearch = search != null ? search.trim() : "";
+
+        if (status == null || status.equalsIgnoreCase("ALL") || status.trim().isEmpty()) {
+            return documentRepository.findByCompanyIdAndDocumentNameContainingIgnoreCase(
+                    user.getOrganizationId(), safeSearch, pageable);
+        } else {
+            return documentRepository.findByCompanyIdAndStatusAndDocumentNameContainingIgnoreCase(
+                    user.getOrganizationId(), status.toUpperCase(), safeSearch, pageable);
+        }
+    }
+
+    @Override
+    public Documents updateDocumentStatus(String documentId, String newStatus) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Users user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Role Authorization Check
+        if (!user.getRole().contains("ROLE_ADMIN") && !user.getRole().contains("ROLE_APPROVER")) {
+            throw new RuntimeException("Unauthorized: You do not have permission to change document status.");
+        }
+
+        Documents document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        if (!document.getCompanyId().equals(user.getOrganizationId())) {
+            throw new RuntimeException("Unauthorized: Document belongs to another organization.");
+        }
+        
+        document.setStatus(Status.valueOf(newStatus.toUpperCase()));
+        return documentRepository.save(document);
     }
 }
