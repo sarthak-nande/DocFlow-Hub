@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import ResetPasswordPage from './pages/ResetPassword';
 import AdminPage from './pages/AdminPage';
 import Folders from './pages/FoldersPage';
+import OrganizationDocuments from './pages/OrganizationDocuments';
 
 export default function App() {
   return (
@@ -76,6 +77,15 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Folders />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route 
+        path="/organization-documents"
+        element={
+          <ProtectedRoute>
+            <OrganizationDocuments />  
           </ProtectedRoute>
         }
       />

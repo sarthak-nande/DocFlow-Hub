@@ -10,6 +10,7 @@ const navItems = [
   { to: '/manage-users', label: 'Manage Users', icon: Users },
   { to: '/profile', label: 'Profile', icon: UserRound },
   { to: '/folders', label: 'Folders', icon: Folder },
+  { to: '/organization-documents', label: 'Organization Documents', icon: Folder },
 ];
 
 export default function Sidebar({ collapsed, onToggle, mobileMenuOpen, setMobileMenuOpen }) {

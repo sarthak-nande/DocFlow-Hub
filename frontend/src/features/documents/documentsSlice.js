@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance, { fetchCsrfToken } from '../../api/axiosInstance';
 
-// ─── Async thunks ──────────────────────────────────────────────────────────────
+// ─── Existing Async Thunks ───────────────────────────────────────────────────
 
 export const checkDocumentServiceStatus = createAsyncThunk(
   'documents/checkStatus',
@@ -52,9 +52,46 @@ export const registerOrgUser = createAsyncThunk(
   }
 );
 
+// ─── New Async Thunks for Organization Documents Page ───────────────────────
+
+export const fetchOrgDocuments = createAsyncThunk(
+  "documents/fetchOrgDocuments",
+  async ({ page = 0, size = 10, search = "", status = "ALL" }, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      const response = await axiosInstance.get("/documents/organization/all", {
+        params: { page, size, search, status },
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || "Failed to fetch organization documents"
+      );
+    }
+  }
+);
+
+export const updateDocStatus = createAsyncThunk(
+  "documents/updateStatus",
+  async ({ documentId, status }, { rejectWithValue }) => {
+    try {
+      await fetchCsrfToken();
+      const response = await axiosInstance.put(`/documents/status/${encodeURIComponent(documentId)}`, null, {
+        params: { status },
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.response?.data || "Failed to update status"
+      );
+    }
+  }
+);
+
 // ─── Initial state ─────────────────────────────────────────────────────────────
 
 const initialState = {
+  // Existing State
   serviceStatus: null,
   statusLoading: false,
   uploadedFile: null,
@@ -64,6 +101,15 @@ const initialState = {
   adminRegisterLoading: false,
   adminRegisterSuccess: false,
   adminRegisterError: null,
+  
+  // New State for Organization Documents Table
+  paginatedDocs: [],
+  totalPages: 0,
+  currentPage: 0,
+  totalElements: 0,
+  orgDocsLoading: false,
+  statusUpdating: false,
+  orgDocsError: null,
 };
 
 // ─── Slice ─────────────────────────────────────────────────────────────────────
@@ -81,6 +127,9 @@ const documentsSlice = createSlice({
       state.adminRegisterSuccess = false;
       state.adminRegisterError = null;
     },
+    clearOrgDocsError(state) {
+      state.orgDocsError = null;
+    }
   },
   extraReducers: (builder) => {
     // Service status
@@ -131,8 +180,53 @@ const documentsSlice = createSlice({
         state.adminRegisterLoading = false;
         state.adminRegisterError = action.payload;
       });
+
+    // Fetch Organization Documents (Paginated)
+    builder
+      .addCase(fetchOrgDocuments.pending, (state) => {
+        state.orgDocsLoading = true;
+        state.orgDocsError = null;
+      })
+      .addCase(fetchOrgDocuments.fulfilled, (state, action) => {
+        state.orgDocsLoading = false;
+        // Unwrap API response based on SuccessResponseDto structure
+        const pageData = action.payload?.object || action.payload?.data || action.payload;
+        
+        state.paginatedDocs = pageData?.content || [];
+        state.totalPages = pageData?.totalPages || 0;
+        state.currentPage = pageData?.number || 0;
+        state.totalElements = pageData?.totalElements || 0;
+      })
+      .addCase(fetchOrgDocuments.rejected, (state, action) => {
+        state.orgDocsLoading = false;
+        state.orgDocsError = action.payload;
+        state.paginatedDocs = [];
+      });
+
+    // Update Document Status
+    builder
+      .addCase(updateDocStatus.pending, (state) => {
+        state.statusUpdating = true;
+        state.orgDocsError = null;
+      })
+      .addCase(updateDocStatus.fulfilled, (state, action) => {
+        state.statusUpdating = false;
+        const updatedDoc = action.payload?.object || action.payload?.data || action.payload;
+        
+        // Update the document inline without triggering a full refetch
+        const index = state.paginatedDocs.findIndex(
+          (doc) => (doc.id || doc._id) === (updatedDoc.id || updatedDoc._id)
+        );
+        if (index !== -1) {
+          state.paginatedDocs[index] = updatedDoc;
+        }
+      })
+      .addCase(updateDocStatus.rejected, (state, action) => {
+        state.statusUpdating = false;
+        state.orgDocsError = action.payload;
+      });
   },
 });
 
-export const { clearUploadState, clearAdminState } = documentsSlice.actions;
+export const { clearUploadState, clearAdminState, clearOrgDocsError } = documentsSlice.actions;
 export default documentsSlice.reducer;
