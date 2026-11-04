@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ public class JwtAuthLoginUtil {
 		try {
 			Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
 			return true;
-		} catch (UnsupportedJwtException e) {
+		} catch (JwtException e) {
 			return false;
 		} 
 		

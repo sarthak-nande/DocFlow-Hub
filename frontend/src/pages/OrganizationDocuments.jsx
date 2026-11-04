@@ -117,7 +117,7 @@ export default function OrganizationDocuments() {
                   className="rounded-xl border border-[#dbe8f3] bg-[#f8fbff] px-3 py-2 text-sm text-slate-600 outline-none focus:border-[#2674b9]"
                 >
                   <option value="ALL">All Statuses</option>
-                  <option value="PENDING">Pending</option>
+                  <option value="PENDING_APPROVAL">Pending</option>
                   <option value="APPROVED">Approved</option>
                   <option value="REJECTED">Rejected</option>
                 </select>

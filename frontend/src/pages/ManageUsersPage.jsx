@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Building2, Loader2, RefreshCw, Search, ShieldCheck, Users, Pencil, X, Check, UserPlus } from 'lucide-react';
@@ -33,11 +33,11 @@ export default function ManageUsers() {
   // Support both Admin and Approver roles for accessing/managing this view
   const canAccess = hasRole(userData, 'ADMIN') || hasRole(userData, 'APPROVER');
 
-  useState(() => {
+  useEffect(() => {
     if (username && !user) {
       dispatch(fetchUserDetails(username));
     }
-  });
+  }, [dispatch, username, user]);
 
   const loadUsers = () => {
     if (!orgId.trim()) {

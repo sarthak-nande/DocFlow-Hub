@@ -37,10 +37,24 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear auth state and redirect to login
-      localStorage.removeItem('docflow_token');
-      localStorage.removeItem('docflow_user');
-      window.location.href = '/login';
+      const requestUrl = error.config?.url || '';
+      const authorization =
+        error.config?.headers?.Authorization ||
+        error.config?.headers?.authorization ||
+        error.config?.headers?.get?.('Authorization');
+      const requestToken = authorization?.replace(/^Bearer\s+/i, '');
+      const currentToken = localStorage.getItem('docflow_token');
+      const isPublicRequest =
+        requestUrl.includes('/csrf-token/public') || requestUrl.includes('/auth/login');
+
+      // Do not let a public request or a stale response clear a newer login.
+      if (!isPublicRequest && currentToken && requestToken === currentToken) {
+        localStorage.removeItem('docflow_token');
+        localStorage.removeItem('docflow_user');
+        if (window.location.pathname !== '/login') {
+          window.location.assign('/login');
+        }
+      }
     }
     return Promise.reject(error);
   }
