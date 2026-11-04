@@ -74,6 +74,16 @@ export const fetchUserDetails = createAsyncThunk(
         err.response?.data?.message || 'Failed to fetch user details'
       );
     }
+  },
+  {
+    condition: (email, { getState }) => {
+      const { auth } = getState();
+      const loadedEmail = auth.user?.object?.email || auth.user?.email;
+      return (
+        auth.userDetailsLoading !== true ||
+        (auth.userDetailsEmail !== email && loadedEmail !== email)
+      );
+    }
   }
 );
 
@@ -159,6 +169,8 @@ const initialState = {
   username: storedUser || null,
   isAuthenticated: !!storedToken,
   user: null,
+  userDetailsLoading: false,
+  userDetailsEmail: null,
   orgUsers: [],
   loading: false,
   error: null,
@@ -176,6 +188,8 @@ const authSlice = createSlice({
       state.username = null;
       state.isAuthenticated = false;
       state.user = null;
+      state.userDetailsLoading = false;
+      state.userDetailsEmail = null;
       state.error = null;
       localStorage.removeItem('docflow_token');
       localStorage.removeItem('docflow_user');
@@ -242,8 +256,19 @@ builder
 
     // Fetch user details
     builder
+      .addCase(fetchUserDetails.pending, (state, action) => {
+        state.userDetailsLoading = true;
+        state.userDetailsEmail = action.meta.arg;
+      })
       .addCase(fetchUserDetails.fulfilled, (state, action) => {
+        state.userDetailsLoading = false;
+        state.userDetailsEmail = null;
         state.user = action.payload;
+      })
+      .addCase(fetchUserDetails.rejected, (state, action) => {
+        state.userDetailsLoading = false;
+        state.userDetailsEmail = null;
+        state.error = action.payload;
       });
 
     // Update user details

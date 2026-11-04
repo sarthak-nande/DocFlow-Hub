@@ -67,7 +67,7 @@ public class SecutrityConfig {
 
 		config.setAllowedOrigins(Arrays.asList("http://localhost:5173","https://docflow-hub.onrender.com"));
 		config.setAllowedMethods(Collections.singletonList("*"));
-		config.setAllowedHeaders(Arrays.asList("Content-Type"));
+		config.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-XSRF-TOKEN"));
 		config.setAllowCredentials(true);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
